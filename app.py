@@ -8,7 +8,7 @@ from session import get_mongo
 
 app = FastAPI()
 app.state.mongo = get_mongo()
-app.state.date = datetime.date.today() + datetime.timedelta(days=5)
+app.state.date = datetime.datetime.utcnow().date()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
