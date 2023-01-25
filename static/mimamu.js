@@ -120,11 +120,13 @@ let MiMaMu = (function () {
   }
 
   async function init()  {
+    twemoji.parse(document.body);
     daily = await getDaily();
     getCachedGuesses();
     await populate({});
     const guessForm = document.getElementById("guess-form");
     guessForm.addEventListener("submit", submitGuess);
+    document.getElementById("header").textContent = "MiMaMu #" + puzzleNumber;
   }
   return {init: init};
 })();
@@ -134,7 +136,7 @@ function share() {
     // once you win -- we don't want to include post-win guesses here.
     const totalGuesses = JSON.parse(localStorage.getItem("mmm_allGuesses")).length;
     const puzzleNumber = localStorage.getItem("puzzleNumber");
-    const text = "I solved MiMaMu #" + puzzleNumber  + " in " + totalGuesses + " guesses! 🖼️🤔\n" + "https://mimamu.ishefi.com"
+    const text = "I solved MiMaMu #" + puzzleNumber  + " in " + totalGuesses + " guesses! 🖼️🤔\n\n#MiMaMuGame\nhttps://mimamu.ishefi.com"
     const copied = ClipboardJS.copy(text);
 
     if (copied) {

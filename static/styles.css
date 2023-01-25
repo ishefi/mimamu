@@ -717,3 +717,7 @@ html, body {
   display: table;
   clear: both;
 }
+
+img.emoji {
+  height: 1rem;
+}
