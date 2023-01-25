@@ -102,7 +102,8 @@ let MiMaMu = (function () {
     document.getElementById("winMessage").innerHTML = getWinMessage();
   }
 
-  async function submitGuess() {
+  async function submitGuess(event) {
+    event.preventDefault();
     const guessField = document.getElementById("guess-text");
     const guess = guessField.value.trim();
     allGuesses.add(guess);
@@ -115,14 +116,15 @@ let MiMaMu = (function () {
     localStorage.setItem("mmm_allGuesses", JSON.stringify([...allGuesses]));
     await populate(newGuesses);
     guessField.value = "";
+    guessField.focus();
   }
 
   async function init()  {
     daily = await getDaily();
     getCachedGuesses();
     await populate({});
-    const submitButton = document.getElementById("guess-submit");
-    submitButton.addEventListener("click", submitGuess);
+    const guessForm = document.getElementById("guess-form");
+    guessForm.addEventListener("submit", submitGuess);
   }
   return {init: init};
 })();
