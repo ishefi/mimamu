@@ -85,21 +85,21 @@ let MiMaMu = (function () {
 
   function getWinMessage() {
     return `<p><b>
-            You won!
-            You found the daily MiMaMu in ${allGuesses.size} guesses!
-            <a href="javascript:share();" style="text-decoration: underline;">Share</a>
+            You won! 🎉 <br/>
+            You found the daily MiMaMu in ${allGuesses.size} guesses! <br/>
+            <a href="javascript:share();" style="text-decoration: underline; color: cyan;">Share</a>
             and play again tomorrow!
             </b>
-            <br>
+            <br/>
             </p>`
   }
 
   async function markWin() {
-    const containers = document.querySelectorAll('.fireworks')
-    containers.forEach(container => {(new Fireworks.default(container)).start()})
     document.getElementById("guess-text").disabled = true;
     document.getElementById("timer").hidden = false;
-    document.getElementById("winMessage").innerHTML = getWinMessage();
+    const winMessage = document.getElementById("winMessage")
+    winMessage.innerHTML = getWinMessage();
+    twemoji.parse(winMessage);
   }
 
   async function submitGuess(event) {
