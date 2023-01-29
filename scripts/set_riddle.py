@@ -40,11 +40,9 @@ def get_date(mongo):
 def main():
     parser = ArgumentParser("Set riddle")
     parser.add_argument(
-            '-u',
-            '--url',
+            dest="url",
             metavar='URL',
             help="Shared DALL·E 2 URL",
-            required=True
         )
     parser.add_argument(
         '-d', '--date', metavar='DATE', type=valid_date,
@@ -58,14 +56,14 @@ def main():
         date = args.date
     else:
         date = get_date(mongo)
-    print(f"doing {date}")
     url = args.url
     while url:
         print(f"doing {date}")
         dalle_page = requests.get(url)
-        html = BeautifulSoup(dalle_page.text)
+        html = BeautifulSoup(dalle_page.text, features="html.parser")
         raw_prompt = html.title.text
         author, prompt = raw_prompt.split(DALLE_AUTHOR)
+        prompt = prompt.replace(",", " ,")
         prompt_words = prompt.strip().split()
         meta_image, = html.find_all("meta", property="og:image")
         image_url = meta_image.get("content")

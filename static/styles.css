@@ -374,8 +374,13 @@ html, body {
    position: relative;
 }
  #prompt span {
-  margin: 5px;
+  margin: 0 0 0 10px;
   font-size: large;
+  display: inline-block;
+ }
+
+ #prompt span.punct {
+    margin: 0;
  }
  #game .article-container .caviarded:nth-of-type(5n) {
    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;

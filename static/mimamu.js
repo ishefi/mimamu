@@ -54,6 +54,7 @@ let MiMaMu = (function () {
 
 
   async function populate(newGuesses) {
+    const punctuation = ","
     const pic = document.getElementById("pic");
     const author = document.getElementById("promptBy")
     author.textContent = "prompt by " + daily.author;
@@ -74,7 +75,10 @@ let MiMaMu = (function () {
         else {
           newWord = document.createElement("span");
           newWord.textContent = word;
-          if (newGuesses[i]) {
+          if (punctuation.includes(word)) {
+            newWord.classList = "punct";
+          }
+          else if (newGuesses[i]) {
             newWord.classList = "word selected";
           }
         }

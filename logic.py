@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 class RiddleLogic:
     _riddle_cache: dict[datetime.date, schemas.GameData] = {}
+    PUNCTUATION = ","
+    PROMPT_KEYWORDS = ("digital", "art")
 
     def __init__(self, mongo_riddles: Collection, date: datetime.date):
         self.mongo_riddles = mongo_riddles
@@ -22,6 +24,8 @@ class RiddleLogic:
         if self._stopwords is None:
             with open("stopwords.txt") as stopwords:
                 self._stopwords = stopwords.read().split(",")
+                self._stopwords.extend(self.PUNCTUATION)
+                self._stopwords.extend(self.PROMPT_KEYWORDS)
         return self._stopwords
 
     def get_redacted_riddle(self) -> schemas.GameData:
@@ -52,6 +56,8 @@ class RiddleLogic:
             )
 
     def guess(self, guess_word):
+        for punctuation in self.PUNCTUATION:
+            guess_word = guess_word.replace(punctuation, "")
         riddle = self.get_riddle()
         found_indices = {}
         for i, word in enumerate(riddle.words):
