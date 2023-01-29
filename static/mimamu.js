@@ -55,6 +55,8 @@ let MiMaMu = (function () {
 
   async function populate(newGuesses) {
     const pic = document.getElementById("pic");
+    const author = document.getElementById("promptBy")
+    author.textContent = "prompt by " + daily.author;
     pic.src = daily.picture;
     const prompt = document.getElementById("prompt");
     prompt.replaceChildren([]);
