@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class GameData(BaseModel):
     picture: str
     words: list[str]
+    author: str
 
 
 class GuessAnswer(BaseModel):

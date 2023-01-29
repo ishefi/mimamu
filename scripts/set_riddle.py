@@ -5,6 +5,11 @@ from datetime import datetime
 from datetime import timedelta
 import os
 import sys
+import urllib
+
+from PIL import Image
+from bs4 import BeautifulSoup
+import requests
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
@@ -12,6 +17,8 @@ sys.path.extend([base])
 from session import get_mongo
 from logic import RiddleLogic
 import schemas
+
+DALLE_AUTHOR = " × DALL·E | "
 
 
 def valid_date(date_str):
@@ -27,7 +34,6 @@ def get_date(mongo):
     latest = cursor.next()
     date = latest["date"]
     dt = date + timedelta(days=1)
-    print(f"Now doing {dt}", file=sys.stderr)
     return dt
 
 
@@ -37,14 +43,13 @@ def main():
             '-u',
             '--url',
             metavar='URL',
-            help="Picture URL",
+            help="Shared DALL·E 2 URL",
             required=True
         )
     parser.add_argument(
         '-d', '--date', metavar='DATE', type=valid_date,
         help="Date of secret. If not provided, first date w/o riddle is used"
     )
-    parser.add_argument("-p", '--prompt', metavar="PROMPT", help="Riddle's prompt", required=True)
 
     args = parser.parse_args()
 
@@ -54,9 +59,30 @@ def main():
     else:
         date = get_date(mongo)
     print(f"doing {date}")
-    logic = RiddleLogic(mongo_riddles=mongo, date=date)
-    logic.set_riddle(schemas.GameData(picture=args.url, words=args.prompt.split()))
+    url = args.url
+    while url:
+        print(f"doing {date}")
+        dalle_page = requests.get(url)
+        html = BeautifulSoup(dalle_page.text)
+        raw_prompt = html.title.text
+        author, prompt = raw_prompt.split(DALLE_AUTHOR)
+        prompt_words = prompt.strip().split()
+        meta_image, = html.find_all("meta", property="og:image")
+        image_url = meta_image.get("content")
+
+        urllib.request.urlretrieve(image_url, "tmp.png")
+        with Image.open("tmp.png") as img:
+            img.show()
+        print(f"{author}'s Prompt: {prompt}")
+        if input("Is ok? [yN] ") in ["y", "Y"]:
+            logic = RiddleLogic(mongo_riddles=mongo, date=date)
+            logic.set_riddle(
+                schemas.GameData(picture=image_url, words=prompt_words, author=author)
+            )
+            date = get_date(mongo)
+        url = input("New URL > ")
     print("done")
+
 
 if __name__ == "__main__":
     main()
