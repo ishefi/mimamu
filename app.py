@@ -8,17 +8,19 @@ from routers import routers
 from session import get_mongo
 
 
-def get_date():
+def get_date_delta():
+    today = datetime.utcnow().date()
     try:
         date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d')
-        return date.date()
+        return (date.date() - today).days
     except ValueError:
-        return datetime.utcnow().date()
+        return 0
 
 
 app = FastAPI()
 app.state.mongo = get_mongo()
-app.state.date = get_date()
+app.state.date_delta = get_date_delta()
+app.state.puzzle_version = os.environ.get("PUZZLE_VERSION", "")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

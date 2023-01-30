@@ -19,9 +19,19 @@ let MiMaMu = (function () {
 
     async function getDaily(){
       const cachedPuzzleNumber = localStorage.getItem("puzzleNumber");
-      if (puzzleNumber != cachedPuzzleNumber) {
+      const cachedPuzzleVersion = localStorage.getItem("puzzleVersion");
+      newPuzzle = (puzzleNumber != cachedPuzzleNumber);
+
+      puzzleVersion = (await (await fetch("/game/version")).json()).version;
+      console.log(puzzleVersion);
+
+      const samePuzzle = (puzzleNumber == cachedPuzzleNumber);
+      const sameVersion = (puzzleVersion === cachedPuzzleVersion);
+
+      if ((!samePuzzle) || (!sameVersion)) {
         clearCache();
         localStorage.setItem("puzzleNumber", puzzleNumber);
+        localStorage.setItem("puzzleVersion", puzzleVersion);
         const response = await fetch("/game/data");
         localStorage.setItem("daily", JSON.stringify(await response.json()))
       }
