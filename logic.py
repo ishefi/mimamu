@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class RiddleLogic:
     _riddle_cache: dict[datetime.date, schemas.GameData] = {}
     PUNCTUATION = ","
-    PROMPT_KEYWORDS = ("digital", "art")
+    PROMPT_KEYWORDS = ("digital", "art", "pop")
 
     def __init__(self, mongo_riddles: Collection, date: datetime.date):
         self.mongo_riddles = mongo_riddles
@@ -30,10 +30,13 @@ class RiddleLogic:
 
     def get_redacted_riddle(self) -> schemas.GameData:
         riddle = self.get_riddle()
+        self.redact(riddle)
+        return riddle
+
+    def redact(self, riddle: schemas.GameData) -> None:
         for i, word in enumerate(riddle.words):
             if word.lower() not in self.stopwords:
                 riddle.words[i] = "█" * len(word)
-        return riddle
 
     def get_riddle(self) -> schemas.GameData | None:
         if self.date not in self._riddle_cache:

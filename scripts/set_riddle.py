@@ -71,12 +71,14 @@ def main():
         urllib.request.urlretrieve(image_url, "tmp.png")
         with Image.open("tmp.png") as img:
             img.show()
+        riddle = schemas.GameData(picture=image_url, words=prompt_words, author=author)
+        logic = RiddleLogic(mongo_riddles=mongo, date=date)
+        redacted = riddle.copy()
+        logic.redact(redacted)
         print(f"{author}'s Prompt: {prompt}")
+        print(f"Redacted: {' '.join(redacted.words)}")
         if input("Is ok? [yN] ") in ["y", "Y"]:
-            logic = RiddleLogic(mongo_riddles=mongo, date=date)
-            logic.set_riddle(
-                schemas.GameData(picture=image_url, words=prompt_words, author=author)
-            )
+            logic.set_riddle(riddle)
             date = get_date(mongo)
         url = input("New URL > ")
     print("done")
