@@ -21,6 +21,7 @@ app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.date_delta = get_date_delta()
 app.state.puzzle_version = os.environ.get("PUZZLE_VERSION", "")
+app.state.secret_token = os.environ["SECRET_TOKEN"]
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

@@ -67,3 +67,6 @@ class RiddleLogic:
             if guess_word.lower() == word.lower():
                 found_indices[i] = word
         return schemas.GuessAnswer(correct_guesses=found_indices)
+
+    def clear_cache(self):
+        self._riddle_cache.clear()

@@ -6,13 +6,16 @@ from fastapi import Depends
 from fastapi.responses import HTMLResponse
 from fastapi.requests import Request
 from fastapi.templating import Jinja2Templates
+from fastapi import status
 
+from auth import verify_token
 from logic import RiddleLogic
 import schemas
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
 game_router = APIRouter(prefix="/game")
+admin_router = APIRouter(prefix="/admin", dependencies=[Depends(verify_token)])
 
 
 @page_router.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -52,4 +55,8 @@ async def get_puzzle_version(request: Request) -> dict:
     return {"version": request.app.state.puzzle_version}
 
 
-routers = [page_router, game_router]
+@admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
+    logic.clear_cache()
+
+routers = [page_router, game_router, admin_router]
