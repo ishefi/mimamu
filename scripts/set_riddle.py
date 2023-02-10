@@ -48,6 +48,9 @@ def main():
         '-d', '--date', metavar='DATE', type=valid_date,
         help="Date of secret. If not provided, first date w/o riddle is used"
     )
+    parser.add_argument(
+        "-f", "--force", action="store_true", help="Skip repeat-checks etc."
+    )
 
     args = parser.parse_args()
 
@@ -73,12 +76,12 @@ def main():
             img.show()
         riddle = schemas.GameData(picture=image_url, words=prompt_words, author=author)
         logic = RiddleLogic(mongo_riddles=mongo, date=date)
-        redacted = riddle.copy()
+        redacted = riddle.copy(deep=True)
         logic.redact(redacted)
         print(f"{author}'s Prompt: {prompt}")
         print(f"Redacted: {' '.join(redacted.words)}")
         if input("Is ok? [yN] ") in ["y", "Y"]:
-            logic.set_riddle(riddle)
+            logic.set_riddle(riddle, force=args.force)
             date = get_date(mongo)
         url = input("New URL > ")
     print("done")
