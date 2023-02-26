@@ -5,37 +5,35 @@ from typing import TYPE_CHECKING
 import schemas
 import datetime
 
+import stopwords
+
 if TYPE_CHECKING:
     from pymongo.collection import Collection
 
 
 class RiddleLogic:
     _riddle_cache: dict[datetime.date, schemas.GameData] = {}
-    PUNCTUATION = ","
-    PROMPT_KEYWORDS = ("digital", "art", "pop")
 
     def __init__(self, mongo_riddles: Collection, date: datetime.date):
         self.mongo_riddles = mongo_riddles
         self.date = datetime.datetime(date.year, date.month, date.day)
-        self._stopwords = None
-
-    @property
-    def stopwords(self):
-        if self._stopwords is None:
-            with open("stopwords.txt") as stopwords:
-                self._stopwords = stopwords.read().split(",")
-                self._stopwords.extend(self.PUNCTUATION)
-                self._stopwords.extend(self.PROMPT_KEYWORDS)
-        return self._stopwords
+        self.stopwords = stopwords.all_stopwords
 
     def get_redacted_riddle(self) -> schemas.GameData:
         riddle = self.get_riddle()
         self.redact(riddle)
         return riddle
 
+    def _should_redact(self, word: str) -> bool:
+        if word.lower() in self.stopwords:
+            return False
+        if not word.isalpha():
+            return False
+        return True
+
     def redact(self, riddle: schemas.GameData) -> None:
         for i, word in enumerate(riddle.words):
-            if word.lower() not in self.stopwords:
+            if self._should_redact(word):
                 riddle.words[i] = "█" * len(word)
 
     def get_riddle(self) -> schemas.GameData | None:
@@ -59,7 +57,7 @@ class RiddleLogic:
             )
 
     def guess(self, guess_word):
-        for punctuation in self.PUNCTUATION:
+        for punctuation in stopwords.punctuation:
             guess_word = guess_word.replace(punctuation, "")
         riddle = self.get_riddle()
         found_indices = {}

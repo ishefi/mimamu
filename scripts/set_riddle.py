@@ -66,7 +66,7 @@ def main():
         html = BeautifulSoup(dalle_page.text, features="html.parser")
         raw_prompt = html.title.text
         author, prompt = raw_prompt.split(DALLE_AUTHOR)
-        prompt = prompt.replace(",", " ,")
+        prompt = prompt.replace(",", " , ")
         prompt_words = prompt.strip().split()
         meta_image, = html.find_all("meta", property="og:image")
         image_url = meta_image.get("content")
