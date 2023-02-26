@@ -644,7 +644,6 @@ stopwords = (
     'overall',
     'ow',
     'owing',
-    'own',
     'ox',
     'oz',
     'p',
@@ -1105,6 +1104,6 @@ stopwords = (
     'zi',
     'zz',
 )
-punctuation = (",",)
+punctuation = (",", ".")
 prompt_keywords = ("digital", "art", "pop")
 all_stopwords = stopwords + punctuation + prompt_keywords

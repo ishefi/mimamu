@@ -64,7 +64,7 @@ let MiMaMu = (function () {
 
 
   async function populate(newGuesses) {
-    const punctuation = ","
+    const punctuation = ",."
     const pic = document.getElementById("pic");
     const author = document.getElementById("promptBy")
     author.textContent = "prompt by " + daily.author;

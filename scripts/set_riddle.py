@@ -16,6 +16,7 @@ sys.path.extend([base])
 
 from session import get_mongo
 from logic import RiddleLogic
+import stopwords
 import schemas
 
 DALLE_AUTHOR = " × DALL·E | "
@@ -66,7 +67,8 @@ def main():
         html = BeautifulSoup(dalle_page.text, features="html.parser")
         raw_prompt = html.title.text
         author, prompt = raw_prompt.split(DALLE_AUTHOR)
-        prompt = prompt.replace(",", " , ")
+        for punct in stopwords.punctuation:
+            prompt = prompt.replace(punct, f" {punct} ")
         prompt_words = prompt.strip().split()
         meta_image, = html.find_all("meta", property="og:image")
         image_url = meta_image.get("content")
