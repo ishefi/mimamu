@@ -64,7 +64,8 @@ let MiMaMu = (function () {
 
 
   async function populate(newGuesses) {
-    const punctuation = ",."
+    const noSpacePunctuation = "’'";
+    const punctuation = ",." + noSpacePunctuation;
     const pic = document.getElementById("pic");
     const author = document.getElementById("promptBy")
     author.textContent = "prompt by " + daily.author;
@@ -163,5 +164,15 @@ function share() {
     }
 }
 
+function shareBtc() {
+  const BTCAddress = "bc1qe3hpdddft34lmm7g6s6u6pef6k6mz4apykrla3jewapxeup4hpwsydhgx0";
+  const copied = ClipboardJS.copy(BTCAddress);
+  if (copied) {
+      alert("copied BTC wallet address :)");
+  }
+  else {
+      alert("Failed to copy to clipboard");
+  }
+}
 
 MiMaMu.init();
