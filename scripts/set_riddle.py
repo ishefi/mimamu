@@ -67,6 +67,7 @@ def main():
         html = BeautifulSoup(dalle_page.text, features="html.parser")
         raw_prompt = html.title.text
         author, prompt = raw_prompt.split(DALLE_AUTHOR)
+        prompt = prompt.replace("-", " ")
         for punct in stopwords.punctuation:
             prompt = prompt.replace(punct, f" {punct} ")
         prompt_words = prompt.strip().split()

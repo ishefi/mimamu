@@ -224,14 +224,6 @@ stopwords = (
     'dj',
     'dk',
     'dl',
-    'do',
-    'does',
-    'doesn',
-    "doesn't",
-    'doing',
-    'don',
-    'done',
-    "don't",
     'down',
     'downwards',
     'dp',
@@ -499,8 +491,6 @@ stopwords = (
     'like',
     'liked',
     'likely',
-    'line',
-    'little',
     'lj',
     'll',
     'll',
@@ -1095,6 +1085,6 @@ stopwords = (
     'zi',
     'zz',
 )
-punctuation = (",", ".")
-prompt_keywords = ("digital", "art", "pop")
+punctuation = (",", ".", "'", "’")
+prompt_keywords = ("digital", "pop")
 all_stopwords = stopwords + punctuation + prompt_keywords
