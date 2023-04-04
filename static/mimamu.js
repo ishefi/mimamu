@@ -137,13 +137,13 @@ let MiMaMu = (function () {
   }
 
   async function init()  {
-    twemoji.parse(document.body);
     daily = await getDaily();
     getCachedGuesses();
     await populate({});
     const guessForm = document.getElementById("guess-form");
     guessForm.addEventListener("submit", submitGuess);
     document.getElementById("header").textContent = "MiMaMu #" + puzzleNumber;
+    twemoji.parse(document.body);
   }
   return {init: init};
 })();
