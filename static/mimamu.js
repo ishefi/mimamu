@@ -76,6 +76,10 @@ let MiMaMu = (function () {
     for (let i = 0; i < daily.words.length; i++) {
       const word = guesses[i] || daily.words[i];
         var newWord;
+        var wordWrapper = document.createElement("span");
+        var wordCounter = document.createElement("p");
+        wordCounter.classList = "word-counter"
+        wordCounter.textContent = i + 1;
         if (word[0] === "█") {
           won = false;
           newWord = document.createElement("span");
@@ -93,7 +97,9 @@ let MiMaMu = (function () {
             newWord.classList = "word selected";
           }
         }
-        prompt.appendChild(newWord);
+        wordWrapper.appendChild(newWord);
+        wordWrapper.appendChild(wordCounter);
+        prompt.appendChild(wordWrapper);
       }
       if (won) {
         markWin();
