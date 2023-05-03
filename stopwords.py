@@ -254,7 +254,6 @@ stopwords = (
     'en',
     'ending',
     'enough',
-    'entirely',
     'eo',
     'ep',
     'eq',
