@@ -61,8 +61,8 @@ def main():
     else:
         date = get_date(mongo)
     url = args.url
+    print(f"doing {date}")
     while url:
-        print(f"doing {date}")
         dalle_page = requests.get(url)
         html = BeautifulSoup(dalle_page.text, features="html.parser")
         raw_prompt = html.title.text
@@ -86,7 +86,7 @@ def main():
         if input("Is ok? [yN] ") in ["y", "Y"]:
             logic.set_riddle(riddle, force=args.force)
             date = get_date(mongo)
-        url = input("New URL > ")
+        url = input(f"doing {date}\nNew URL > ")
     print("done")
 
 
