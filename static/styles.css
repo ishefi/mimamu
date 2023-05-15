@@ -415,7 +415,7 @@ html, body {
    height: 100%;
    left: 0;
    justify-content: center;
-   opacity: 0;
+   opacity: 1;
    position: absolute;
    top: 0;
    transition: opacity 0.2s ease-in-out;
