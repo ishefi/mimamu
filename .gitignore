@@ -3,3 +3,4 @@ config.yaml
 venv*
 .idea*
 tmp.png
+.DS_Store
