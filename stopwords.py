@@ -526,7 +526,6 @@ stopwords = (
     'neither',
     'never',
     'nevertheless',
-    'new',
     'next',
     'ng',
     'ni',
