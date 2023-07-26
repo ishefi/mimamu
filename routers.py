@@ -21,7 +21,7 @@ admin_router = APIRouter(prefix="/admin", dependencies=[Depends(verify_token)])
 @page_router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request):
     return templates.TemplateResponse(
-        name='index.html',
+        name="index.html",
         context={
             "request": request,
         },
@@ -41,7 +41,7 @@ async def get_game(logic: RiddleLogic = Depends(get_logic)) -> schemas.GameData:
 
 @game_router.get("/guess")
 async def guess(
-        guess_word: str, logic: RiddleLogic = Depends(get_logic)
+    guess_word: str, logic: RiddleLogic = Depends(get_logic)
 ) -> schemas.GuessAnswer:
     guess_word = guess_word.split()
     guess_answer = schemas.GuessAnswer()
@@ -58,5 +58,6 @@ async def get_puzzle_version(request: Request) -> dict:
 @admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
     logic.clear_cache()
+
 
 routers = [page_router, game_router, admin_router]

@@ -11,7 +11,7 @@ from session import get_mongo
 def get_date_delta():
     today = datetime.utcnow().date()
     try:
-        date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d')
+        date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d")
         return (date.date() - today).days
     except ValueError:
         return 0

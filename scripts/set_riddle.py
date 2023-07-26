@@ -24,7 +24,7 @@ DALLE_AUTHOR = " × DALL·E | "
 
 def valid_date(date_str):
     try:
-        return datetime.strptime(date_str, '%Y-%m-%d').date()
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
     except ValueError:
         raise ArgumentTypeError("Bad date: should be of the format YYYY-mm-dd")
 
@@ -41,13 +41,16 @@ def get_date(mongo):
 def main():
     parser = ArgumentParser("Set riddle")
     parser.add_argument(
-            dest="url",
-            metavar='URL',
-            help="Shared DALL·E 2 URL",
-        )
+        dest="url",
+        metavar="URL",
+        help="Shared DALL·E 2 URL",
+    )
     parser.add_argument(
-        '-d', '--date', metavar='DATE', type=valid_date,
-        help="Date of secret. If not provided, first date w/o riddle is used"
+        "-d",
+        "--date",
+        metavar="DATE",
+        type=valid_date,
+        help="Date of secret. If not provided, first date w/o riddle is used",
     )
     parser.add_argument(
         "-f", "--force", action="store_true", help="Skip repeat-checks etc."
@@ -71,7 +74,7 @@ def main():
         for punct in stopwords.punctuation:
             prompt = prompt.replace(punct, f" {punct} ")
         prompt_words = prompt.strip().split()
-        meta_image, = html.find_all("meta", property="og:image")
+        (meta_image,) = html.find_all("meta", property="og:image")
         image_url = meta_image.get("content")
 
         urllib.request.urlretrieve(image_url, "tmp.png")
@@ -101,6 +104,7 @@ def _approve_riddle(logic, riddle, prompt, force):
             author=riddle.author,
         )
         _approve_riddle(logic, riddle, new_prompt, force)
+
 
 if __name__ == "__main__":
     main()

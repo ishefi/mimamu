@@ -14,4 +14,3 @@ class GuessAnswer(BaseModel):
 
     def update(self, other: Self) -> None:
         self.correct_guesses.update(other.correct_guesses)
-
