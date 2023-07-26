@@ -2,19 +2,22 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from common.errors import MMMError
 import schemas
 import datetime
 
 import stopwords
 
 if TYPE_CHECKING:
-    from pymongo.collection import Collection
+    import pymongo.collection
 
 
 class RiddleLogic:
     _riddle_cache: dict[datetime.date, schemas.GameData] = {}
 
-    def __init__(self, mongo_riddles: Collection, date: datetime.date):
+    def __init__(
+        self, mongo_riddles: pymongo.collection.Collection, date: datetime.date
+    ):
         self.mongo_riddles = mongo_riddles
         self.date = datetime.datetime(date.year, date.month, date.day)
         self.stopwords = stopwords.all_stopwords
@@ -36,17 +39,17 @@ class RiddleLogic:
             if self._should_redact(word):
                 riddle.words[i] = "█" * len(word)
 
-    def get_riddle(self) -> schemas.GameData | None:
+    def get_riddle(self) -> schemas.GameData:
         if self.date not in self._riddle_cache:
             riddle = self.mongo_riddles.find_one(
                 {"date": self.date}, {"date": 0, "_id": 0}
             )
             if riddle is None:
-                return None
+                raise MMMError(45383, f"Mo riddle found for date {self.date.date()}")
             self._riddle_cache[self.date] = schemas.GameData(**riddle)
         return self._riddle_cache[self.date].copy(deep=True)
 
-    def set_riddle(self, riddle: schemas.GameData, force=False):
+    def set_riddle(self, riddle: schemas.GameData, force=False) -> None:
         if not force and (existing_riddle := self.get_riddle()):
             raise ValueError(f"There is a riddle for this date: {existing_riddle}")
         else:
@@ -56,7 +59,7 @@ class RiddleLogic:
                 {"date": self.date}, {"$set": new_riddle}, upsert=True
             )
 
-    def guess(self, guess_word):
+    def guess(self, guess_word) -> schemas.GuessAnswer:
         for punctuation in stopwords.punctuation:
             guess_word = guess_word.replace(punctuation, "")
         riddle = self.get_riddle()
@@ -66,5 +69,5 @@ class RiddleLogic:
                 found_indices[i] = word
         return schemas.GuessAnswer(correct_guesses=found_indices)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         self._riddle_cache.clear()

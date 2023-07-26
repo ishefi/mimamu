@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 import os
 import sys
-import urllib
+import urllib.request
 
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -68,6 +68,8 @@ def main():
     while url:
         dalle_page = requests.get(url)
         html = BeautifulSoup(dalle_page.text, features="html.parser")
+        if html.title is None:
+            raise ValueError("Invalid page title, check URL")
         raw_prompt = html.title.text
         author, prompt = raw_prompt.split(DALLE_AUTHOR)
         prompt = prompt.replace("-", " ")

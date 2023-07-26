@@ -43,9 +43,8 @@ async def get_game(logic: RiddleLogic = Depends(get_logic)) -> schemas.GameData:
 async def guess(
     guess_word: str, logic: RiddleLogic = Depends(get_logic)
 ) -> schemas.GuessAnswer:
-    guess_word = guess_word.split()
     guess_answer = schemas.GuessAnswer()
-    for word in guess_word:
+    for word in guess_word.split():
         guess_answer.update(logic.guess(word.strip()))
     return guess_answer
 
