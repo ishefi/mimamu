@@ -14,10 +14,10 @@ import requests
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-from session import get_mongo
-from logic import RiddleLogic
-import stopwords
-import schemas
+from session import get_mongo  # noqa
+from logic import RiddleLogic  # noqa
+import stopwords  # noqa
+import schemas  # noqa
 
 DALLE_AUTHOR = " × DALL·E | "
 
