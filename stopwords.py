@@ -44,7 +44,6 @@ stopwords = (
     'allow',
     'allows',
     'almost',
-    'alone',
     'along',
     'already',
     'although',
