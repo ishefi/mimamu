@@ -50,14 +50,17 @@ class RiddleLogic:
         return self._riddle_cache[self.date].copy(deep=True)
 
     def set_riddle(self, riddle: schemas.GameData, force=False) -> None:
-        if not force and (existing_riddle := self.get_riddle()):
-            raise ValueError(f"There is a riddle for this date: {existing_riddle}")
-        else:
-            new_riddle = {"date": self.date}
-            new_riddle.update(riddle.dict())
-            self.mongo_riddles.update_one(
-                {"date": self.date}, {"$set": new_riddle}, upsert=True
-            )
+        if not force:
+            try:
+                existing_riddle = self.get_riddle()
+                raise ValueError(f"There is a riddle for this date: {existing_riddle}")
+            except MMMError:
+                pass
+        new_riddle = {"date": self.date}
+        new_riddle.update(riddle.dict())
+        self.mongo_riddles.update_one(
+            {"date": self.date}, {"$set": new_riddle}, upsert=True
+        )
 
     def guess(self, guess_word) -> schemas.GuessAnswer:
         for punctuation in stopwords.punctuation:
