@@ -349,7 +349,6 @@ stopwords = (
     "hh",
     "hi",
     "hid",
-    "him",
     "himself",
     "his",
     "hither",
