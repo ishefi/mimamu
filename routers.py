@@ -18,22 +18,24 @@ game_router = APIRouter(prefix="/game")
 admin_router = APIRouter(prefix="/admin", dependencies=[Depends(verify_token)])
 
 
+def render(name: str, request, **kwargs):
+    kwargs['js_version'] = request.app.state.js_version
+    kwargs['css_version'] = request.app.state.css_version
+    kwargs['request'] = request
+    return templates.TemplateResponse(
+        name,
+        context=kwargs
+    )
+
+
 @page_router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request):
-    return templates.TemplateResponse(
-        name="index.html",
-        context={
-            "request": request,
-        },
-    )
+    return render(name="index.html", request=request)
 
 
 @page_router.get("/history", response_class=HTMLResponse, include_in_schema=False)
 async def history(request: Request):
-    return templates.TemplateResponse(
-        name="history.html",
-        context={"request": request},
-    )
+    return render(name="history.html", request=request)
 
 
 def get_logic(request: Request):

@@ -6,7 +6,7 @@ let MiMaMu = (function () {
     var daily, guesses;
     var allGuesses;
 
-    const initialDay = 19382;
+    const initialDay = 19382;  // TODO: move logic to BE
     const puzzleNumber = today + 1 - initialDay;
 
     function clearCache() {
