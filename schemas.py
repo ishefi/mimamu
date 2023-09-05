@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import datetime
 from typing import Self
 from pydantic import BaseModel
 
@@ -7,6 +8,7 @@ class GameData(BaseModel):
     picture: str
     words: list[str]
     author: str
+    date: datetime.date
 
 
 class GuessAnswer(BaseModel):

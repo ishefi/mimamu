@@ -691,10 +691,17 @@ html, body {
    height: 0;
 }
 
-/* Create three equal columns that floats next to each other */
+/* Create three equal columns that floats next to each other, half of the screen */
 .column {
   height: auto;
   width: 50%;
+  display: inline-block;
+}
+
+/* Create three equal columns that floats next to each other, third of the screen */
+.column3 {
+  height: auto;
+  width: 33%;
   display: inline-block;
 }
 
@@ -738,4 +745,43 @@ img.emoji {
   margin: 0;
   font-size: 10px;
   color: #568997;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none; /* Disable interaction when hidden */
+}
+
+.modal-content {
+  background-color: #282828;
+  margin: 15% auto;
+  padding: 20px;
+  width: 60%;
+  text-align: center;
+  transform: scale(0.8);
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  border-radius: 10px;
+}
+
+.modal.open {
+  opacity: 1;
+  pointer-events: auto; /* Enable interaction when visible */
+}
+
+.modal-content.open {
+  transform: scale(1);
+}
+
+.modal img {
+   height: 50%;
+   width: 50%;
+   border-radius: 2%;
 }

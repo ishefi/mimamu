@@ -42,25 +42,6 @@ let MiMaMu = (function () {
 		    guesses = JSON.parse(localStorage.getItem("mmm_guesses") || "{}");
 		    allGuesses = new Set(JSON.parse(localStorage.getItem("mmm_allGuesses") || "[]"));
     }
-  var x = setInterval(function() {
-        // Find the distance between now and the count down date
-        var distance = tomorrow.getTime() - Date.now();
-        if (distance < 0 && (!document.hidden)) {
-            window.location.replace(location.protocol + '//' + location.host + location.pathname);
-            return;
-        }
-
-        // Time calculations for days, hours, minutes and seconds
-        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        // Output the result in an element with id="demo"
-        document.getElementById("timer").innerHTML = "next MiMaMu in " +
-        hours + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
-
-        // If the count down is over, write some text
-    }, 1000);
 
 
   async function populate(newGuesses) {
@@ -142,7 +123,77 @@ let MiMaMu = (function () {
     guessField.focus();
   }
 
-  async function init()  {
+  let currentPage = 0;
+  async function getHistory() {
+    await fetchHistory();
+    addClickListenersToImages();
+    currentPage++;
+  }
+  async function fetchHistory() {
+        const response = await fetch(`/game/history?page=${currentPage}`);
+        riddle_history = await response.json();
+        const imageContainer = document.getElementById('image-container');
+        riddle_history.forEach((historia) => {
+          const imgWrapper = document.createElement("div");
+          imgWrapper.className = "column3";
+          const imgText = document.createElement("p");
+          imgText.textContent = historia.date;
+          const imgElement = document.createElement('img');
+          imgElement.className = 'column imageHistory';
+          imgElement.style.borderRadius = "50%";
+          imgElement.src = historia.picture;
+          imgElement.setAttribute('data-prompt', historia.words.join(" "));
+          imgWrapper.appendChild(imgElement);
+          imgWrapper.appendChild(imgText);
+          imageContainer.appendChild(imgWrapper);
+        });
+  }
+
+    // Function to open the modal
+    function openModal(imageUrl, prompt) {
+        const modal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalWords = document.getElementById('modal-words');
+        const modalContent = document.querySelector('.modal-content');
+
+        modalImage.src = imageUrl;
+        modalWords.textContent = prompt;
+
+        modal.classList.add('open');
+        modalContent.classList.add('open');
+
+        modal.onclick = closeModal;
+
+        // Close the modal when clicking outside of it
+        window.onclick = function (event) {
+            if (event.target === modal) {
+            closeModal();
+            }
+        };
+        }
+
+        // Function to close the modal
+    function closeModal() {
+        const modal = document.getElementById('image-modal');
+        const modalContent = document.querySelector('.modal-content');
+        modal.classList.remove('open');
+        modalContent.classList.remove('open');
+    }
+
+    // Function to add click event listeners to each image
+    function addClickListenersToImages() {
+    const images = document.querySelectorAll('.imageHistory');
+        images.forEach((image) => {
+            const imageUrl = image.src;
+            const prompt = image.getAttribute('data-prompt');
+
+        image.onclick = function () {
+            openModal(imageUrl, prompt);
+        };
+    });
+    }
+
+  async function initGame() {
     daily = await getDaily();
     getCachedGuesses();
     await populate({});
@@ -150,8 +201,33 @@ let MiMaMu = (function () {
     guessForm.addEventListener("submit", submitGuess);
     document.getElementById("header").textContent = "MiMaMu #" + puzzleNumber;
     twemoji.parse(document.body);
+
+      var x = setInterval(function() {
+        // Find the distance between now and the count down date
+        var distance = tomorrow.getTime() - Date.now();
+        if (distance < 0 && (!document.hidden)) {
+            window.location.replace(location.protocol + '//' + location.host + location.pathname);
+            return;
+        }
+
+        // Time calculations for days, hours, minutes and seconds
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Output the result in an element with id="demo"
+        document.getElementById("timer").innerHTML = "next MiMaMu in " +
+        hours + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+
+        // If the count down is over, write some text
+    }, 1000);
+
   }
-  return {init: init};
+
+  return {
+    initGame: initGame,
+    getHistory: getHistory
+  };
 })();
 
 function share() {
@@ -180,5 +256,3 @@ function shareBtc() {
       alert("Failed to copy to clipboard");
   }
 }
-
-MiMaMu.init();

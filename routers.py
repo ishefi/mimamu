@@ -28,6 +28,14 @@ async def index(request: Request):
     )
 
 
+@page_router.get("/history", response_class=HTMLResponse, include_in_schema=False)
+async def history(request: Request):
+    return templates.TemplateResponse(
+        name="history.html",
+        context={"request": request},
+    )
+
+
 def get_logic(request: Request):
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
     date = datetime.datetime.today().date() + days_delta
@@ -52,6 +60,11 @@ async def guess(
 @game_router.get("/version")
 async def get_puzzle_version(request: Request) -> dict:
     return {"version": request.app.state.puzzle_version}
+
+
+@game_router.get("/history")
+async def get_history(page: int, logic: RiddleLogic = Depends(get_logic)) -> list[schemas.GameData]:
+    return logic.get_history(page)
 
 
 @admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)
