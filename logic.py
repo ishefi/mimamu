@@ -50,7 +50,7 @@ class RiddleLogic:
                 {"date": date}, {"_id": 0}
             )
             if riddle is None:
-                raise MMMError(45383, f"Mo riddle found for date {date.date()}")
+                raise MMMError(45383, f"No riddle found for date {date.date()}")
             self._riddle_cache[date] = schemas.GameData(**riddle)
         return self._riddle_cache[date].copy(deep=True)
 
@@ -61,8 +61,8 @@ class RiddleLogic:
                 raise ValueError(f"There is a riddle for this date: {existing_riddle}")
             except MMMError:
                 pass
-        new_riddle = {"date": self.date}
-        new_riddle.update(riddle.dict())
+        new_riddle = riddle.dict()
+        new_riddle.update({"date": self.date})
         self.mongo_riddles.update_one(
             {"date": self.date}, {"$set": new_riddle}, upsert=True
         )

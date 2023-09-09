@@ -8,7 +8,7 @@ class GameData(BaseModel):
     picture: str
     words: list[str]
     author: str
-    date: datetime.date
+    date: datetime.date | None = None
 
 
 class GuessAnswer(BaseModel):
