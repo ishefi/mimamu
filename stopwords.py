@@ -794,8 +794,6 @@ stopwords = (
     "t1",
     "t2",
     "t3",
-    "take",
-    "taking",
     "tb",
     "tc",
     "td",
