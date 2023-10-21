@@ -198,9 +198,19 @@ let MiMaMu = (function () {
     getCachedGuesses();
     await populate({});
     const guessForm = document.getElementById("guess-form");
+    const dalleLink = document.getElementById("dalle-link");
     guessForm.addEventListener("submit", submitGuess);
     document.getElementById("header").textContent = "MiMaMu #" + puzzleNumber;
     twemoji.parse(document.body);
+
+    const dalleVersion = daily.dalle | 2;
+    dalleLink.textContent = 'DALL·E ' + dalleVersion;
+    if (dalleVersion == 2) {
+      dalleLink.setAttribute("href", "https://openai.com/dall-e-2/")
+    }
+    else {
+      dalleLink.setAttribute("href", "https://www.bing.com/images/create/")
+    }
 
       var x = setInterval(function() {
         // Find the distance between now and the count down date
