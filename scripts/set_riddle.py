@@ -4,8 +4,10 @@ from argparse import ArgumentTypeError
 from datetime import datetime
 from datetime import timedelta
 import os
+import re
 import sys
 import urllib.request
+import urllib.parse
 
 from PIL import Image
 from bs4 import BeautifulSoup
@@ -38,12 +40,38 @@ def get_date(mongo):
     return dt
 
 
+def get_dalle_2(url):
+    dalle_page = requests.get(url)
+    html = BeautifulSoup(dalle_page.text, features="html.parser")
+    if html.title is None:
+        raise ValueError("Invalid page title, check URL")
+    raw_prompt = html.title.text
+    author, prompt = raw_prompt.split(DALLE_AUTHOR)
+    (meta_image,) = html.find_all("meta", property="og:image")
+    image_url = meta_image.get("content")
+    return prompt, image_url, author
+
+
+def get_bing(url):
+    url = re.sub("/create/.*/", "/create/detail/async/", url)
+    parsed = urllib.parse.urlparse(url)
+    parsed_query = urllib.parse.parse_qs(parsed.query)
+    (image_id,) = parsed_query["id"]
+    newrl = f"https://www.bing.com{parsed.path}?{urllib.parse.urlencode({'imageId': image_id})}"
+    images = requests.get(newrl).json()
+    image_data = next(data for data in images["value"] if data["imageId"] == image_id)
+    prompt = image_data["name"]
+    image_url = image_data["contentUrl"]
+    author = input("Author? > ")
+    return prompt, image_url, author
+
+
 def main():
     parser = ArgumentParser("Set riddle")
     parser.add_argument(
         dest="url",
         metavar="URL",
-        help="Shared DALL·E 2 URL",
+        help="Shared DALL·E {2|3} URL",
     )
     parser.add_argument(
         "-d",
@@ -66,23 +94,22 @@ def main():
     url = args.url
     print(f"doing {date}")
     while url:
-        dalle_page = requests.get(url)
-        html = BeautifulSoup(dalle_page.text, features="html.parser")
-        if html.title is None:
-            raise ValueError("Invalid page title, check URL")
-        raw_prompt = html.title.text
-        author, prompt = raw_prompt.split(DALLE_AUTHOR)
+        if "bing" in url.lower():
+            prompt, image_url, author = get_bing(url)
+            dalle = 3
+        else:
+            prompt, image_url, author = get_dalle_2(url)
+            dalle = 2
         prompt = prompt.replace("-", " ")
         for punct in stopwords.punctuation:
             prompt = prompt.replace(punct, f" {punct} ")
         prompt_words = prompt.strip().split()
-        (meta_image,) = html.find_all("meta", property="og:image")
-        image_url = meta_image.get("content")
-
         urllib.request.urlretrieve(image_url, "tmp.png")
         with Image.open("tmp.png") as img:
             img.show()
-        riddle = schemas.GameData(picture=image_url, words=prompt_words, author=author)
+        riddle = schemas.GameData(
+            picture=image_url, words=prompt_words, author=author, dalle=dalle
+        )
         logic = RiddleLogic(mongo_riddles=mongo, date=date)
         _approve_riddle(logic, riddle, prompt, args.force)
         date = get_date(mongo)

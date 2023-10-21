@@ -9,6 +9,7 @@ class GameData(BaseModel):
     words: list[str]
     author: str
     date: datetime.date | None = None
+    dalle: int = 2
 
 
 class GuessAnswer(BaseModel):
