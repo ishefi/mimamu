@@ -6,41 +6,62 @@ let MiMaMu = (function () {
     var daily, guesses;
     var allGuesses;
 
-    const initialDay = 19382;  // TODO: move logic to BE
-    const puzzleNumber = today + 1 - initialDay;
+    var initialDay;
+    var puzzleNumber;
+    function getCookie(cookieName) {
+      let cookie = {};
+      document.cookie.split(';').forEach(function(el) {
+        let [key,value] = el.split('=');
+        cookie[key.trim()] = value;
+      })
+      return cookie[cookieName];
+    }
+    const lang = getCookie("lang") || "en";
 
     function clearCache() {
-      localStorage.removeItem("mmm_allGuesses");
-      localStorage.removeItem("mmm_guesses");
-      localStorage.removeItem("winState");
-      localStorage.removeItem("daily");
-      localStorage.removeItem("puzzleNumber");
+      localStorage.removeItem(getCacheKey("mmm_allGuesses"));
+      localStorage.removeItem(getCacheKey("mmm_guesses"));
+      localStorage.removeItem(getCacheKey("winState"));
+      localStorage.removeItem(getCacheKey("daily"));
+      localStorage.removeItem(getCacheKey("puzzleNumber"));
+    }
+
+    function getCacheKey(cacheKey) {
+      let suffix = lang === "en" ? "" : `-${lang}`;
+      return cacheKey + suffix;
+    }
+
+    function getCache(cacheKey) {
+      return localStorage.getItem(getCacheKey(cacheKey));
+    }
+
+    function setCache(cacheKey, cacheValue) {
+      return localStorage.setItem(getCacheKey(cacheKey), cacheValue);
     }
 
     async function getDaily(){
-      const cachedPuzzleNumber = localStorage.getItem("puzzleNumber");
-      const cachedPuzzleVersion = localStorage.getItem("puzzleVersion");
+      const cachedPuzzleNumber = getCache("puzzleNumber");
+      const cachedPuzzleVersion = getCache("puzzleVersion");
       newPuzzle = (puzzleNumber != cachedPuzzleNumber);
 
       puzzleVersion = (await (await fetch("/game/version")).json()).version;
-      console.log(puzzleVersion);
 
       const samePuzzle = (puzzleNumber == cachedPuzzleNumber);
       const sameVersion = (puzzleVersion === cachedPuzzleVersion);
 
       if ((!samePuzzle) || (!sameVersion)) {
         clearCache();
-        localStorage.setItem("puzzleNumber", puzzleNumber);
-        localStorage.setItem("puzzleVersion", puzzleVersion);
+        setCache("puzzleNumber", puzzleNumber);
+        setCache("puzzleVersion", puzzleVersion);
         const response = await fetch("/game/data");
-        localStorage.setItem("daily", JSON.stringify(await response.json()))
+        setCache("daily", JSON.stringify(await response.json()))
       }
-      return JSON.parse(localStorage.getItem("daily"));
+      return JSON.parse(getCache("daily"));
     }
 
     function getCachedGuesses() {
-		    guesses = JSON.parse(localStorage.getItem("mmm_guesses") || "{}");
-		    allGuesses = new Set(JSON.parse(localStorage.getItem("mmm_allGuesses") || "[]"));
+		    guesses = JSON.parse(getCache("mmm_guesses") || "{}");
+		    allGuesses = new Set(JSON.parse(getCache("mmm_allGuesses") || "[]"));
     }
 
 
@@ -88,14 +109,26 @@ let MiMaMu = (function () {
   }
 
   function getWinMessage() {
+    if (lang == "en") {
     return `<p><b>
             You won! 🎉 <br/>
             You found the daily MiMaMu in ${allGuesses.size} guesses! <br/>
-            <a href="javascript:share();" style="text-decoration: underline; color: cyan;">Share</a>
+            <a href="javascript:MiMaMu.share();" style="text-decoration: underline; color: cyan;">Share</a>
             and play again tomorrow!
             </b>
             <br/>
             </p>`
+    } else if (lang == "he") {
+    return `<p><b>
+            ניצחת! 🎉 <br/>
+            פתרת את ה־מי?מה?מו? היומי ב־${allGuesses.size} ניחושים! <br/>
+            אפשר
+            <a href="javascript:MiMaMu.share();" style="text-decoration: underline; color: cyan;">לשתף</a>
+            ולשחק שוב מחר!
+            </b>
+            <br/>
+            </p>`
+    }
   }
 
   async function markWin() {
@@ -116,8 +149,8 @@ let MiMaMu = (function () {
     for (index in newGuesses) {
       guesses[index] = newGuesses[index];
     }
-    localStorage.setItem("mmm_guesses", JSON.stringify(guesses));
-    localStorage.setItem("mmm_allGuesses", JSON.stringify([...allGuesses]));
+    setCache("mmm_guesses", JSON.stringify(guesses));
+    setCache("mmm_allGuesses", JSON.stringify([...allGuesses]));
     await populate(newGuesses);
     guessField.value = "";
     guessField.focus();
@@ -194,13 +227,17 @@ let MiMaMu = (function () {
     }
 
   async function initGame() {
+    const rawInitialDate = (await (await fetch("/game/first-date")).json()).first_date;
+    initialDay = (new Date(rawInitialDate + "Z").getTime() / 86400000);
+    puzzleNumber = today + 1 - initialDay;
+
     daily = await getDaily();
     getCachedGuesses();
     await populate({});
     const guessForm = document.getElementById("guess-form");
     const dalleLink = document.getElementById("dalle-link");
     guessForm.addEventListener("submit", submitGuess);
-    document.getElementById("header").textContent = "MiMaMu #" + puzzleNumber;
+    document.getElementById("header").textContent = `${document.title} #${puzzleNumber}`;
     twemoji.parse(document.body);
 
     const dalleVersion = daily.dalle | 2;
@@ -234,18 +271,28 @@ let MiMaMu = (function () {
 
   }
 
-  return {
-    initGame: initGame,
-    getHistory: getHistory
-  };
-})();
-
-function share() {
+  function share() {
     // We use the stored guesses here, because those are not updated again
     // once you win -- we don't want to include post-win guesses here.
-    const totalGuesses = JSON.parse(localStorage.getItem("mmm_allGuesses")).length;
-    const puzzleNumber = localStorage.getItem("puzzleNumber");
-    const text = "I solved MiMaMu #" + puzzleNumber  + " in " + totalGuesses + " guesses! 🖼️🤔\n\n#MiMaMuGame\nhttps://mimamu.ishefi.com"
+    const totalGuesses = JSON.parse(getCache("mmm_allGuesses")).length;
+    const puzzleNumber = getCache("puzzleNumber");
+    const hebrewText = `פתרתי את מי?מה?מו? #${puzzleNumber}
+ב־${totalGuesses} ניחושים! 🖼️🤔
+
+    #מימהמו
+    https://mimamu.ishefi.com/lang/he
+    `
+
+    const englishText = `I solved MiMaMu #${puzzleNumber} in ${totalGuesses} guesses! 🖼️🤔
+
+#MiMaMuGame
+https://mimamu.ishefi.com/lang/en`
+    var text;
+    if (lang == "he") {
+      text = hebrewText;
+    } else {
+      text = englishText;
+    }
     const copied = ClipboardJS.copy(text);
 
     if (copied) {
@@ -255,6 +302,15 @@ function share() {
         alert("Failed to copy to clipboard");
     }
 }
+
+
+  return {
+    share: share,
+    initGame: initGame,
+    getHistory: getHistory
+  };
+})();
+
 
 function shareBtc() {
   const BTCAddress = "bc1qe3hpdddft34lmm7g6s6u6pef6k6mz4apykrla3jewapxeup4hpwsydhgx0";

@@ -4,11 +4,13 @@ import datetime
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from fastapi.requests import Request
 from fastapi.templating import Jinja2Templates
 from fastapi import status
 
 from auth import verify_token
+from common import config
 from logic import RiddleLogic
 import schemas
 
@@ -19,12 +21,14 @@ admin_router = APIRouter(prefix="/admin", dependencies=[Depends(verify_token)])
 
 
 def render(name: str, request, **kwargs):
-    kwargs['js_version'] = request.app.state.js_version
-    kwargs['css_version'] = request.app.state.css_version
-    kwargs['request'] = request
+    kwargs["js_version"] = request.app.state.js_version
+    kwargs["css_version"] = request.app.state.css_version
+    kwargs["lang"] = request.cookies.get("lang", "en")
+    kwargs["content"] = config.html_content
+    kwargs["request"] = request
     return templates.TemplateResponse(
         name,
-        context=kwargs
+        context=kwargs,
     )
 
 
@@ -38,10 +42,22 @@ async def history(request: Request):
     return render(name="history.html", request=request)
 
 
+@page_router.get("/lang/{lang}", response_class=RedirectResponse)
+async def language_change(request: Request, lang: str):
+    response = RedirectResponse("/")
+    response.set_cookie("lang", lang)
+    return response
+
+
 def get_logic(request: Request):
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
-    date = datetime.datetime.today().date() + days_delta
-    return RiddleLogic(mongo_riddles=request.app.state.mongo, date=date)
+    date = datetime.datetime.utcnow().date() + days_delta
+    mongo = request.app.state.mongo
+    return RiddleLogic(
+        mongo_riddles=mongo,
+        date=date,
+        lang=request.cookies.get("lang", "en"),
+    )
 
 
 @game_router.get("/data")
@@ -65,8 +81,15 @@ async def get_puzzle_version(request: Request) -> dict:
 
 
 @game_router.get("/history")
-async def get_history(page: int, logic: RiddleLogic = Depends(get_logic)) -> list[schemas.GameData]:
+async def get_history(
+    page: int, logic: RiddleLogic = Depends(get_logic)
+) -> list[schemas.GameData]:
     return logic.get_history(page)
+
+
+@game_router.get("/first-date")
+async def get_first_date(logic: RiddleLogic = Depends(get_logic)) -> dict:
+    return {"first_date": logic.get_first_riddle_date()}
 
 
 @admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)

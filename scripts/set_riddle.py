@@ -74,6 +74,13 @@ def main():
         help="Shared DALL·E {2|3} URL",
     )
     parser.add_argument(
+        "-l",
+        "--lang",
+        metavar="LANG",
+        help="Language to set riddle for",
+        choices=["he", "en"],
+    )
+    parser.add_argument(
         "-d",
         "--date",
         metavar="DATE",
@@ -90,7 +97,7 @@ def main():
     if args.date:
         date = args.date
     else:
-        date = get_date(mongo)
+        date = get_date(mongo[args.lang])
     url = args.url
     print(f"doing {date}")
     while url:
@@ -110,9 +117,9 @@ def main():
         riddle = schemas.GameData(
             picture=image_url, words=prompt_words, author=author, dalle=dalle
         )
-        logic = RiddleLogic(mongo_riddles=mongo, date=date)
+        logic = RiddleLogic(mongo_riddles=mongo, date=date, lang=args.lang)
         _approve_riddle(logic, riddle, prompt, args.force)
-        date = get_date(mongo)
+        date = get_date(mongo[args.lang])
         url = input(f"doing {date}\nNew URL > ")
     print("done")
 
