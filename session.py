@@ -11,5 +11,9 @@ if TYPE_CHECKING:
     import pymongo.collection
 
 
-def get_mongo() -> pymongo.collection.Collection:
-    return MongoClient(config.mongo).MiMaMu.riddles
+def get_mongo() -> dict[str, pymongo.collection.Collection]:
+    db: pymongo.collection.Database = MongoClient(config.mongo).MiMaMu
+    return {
+        "en": db.riddles,
+        "he": db.hebrew_riddles,
+    }

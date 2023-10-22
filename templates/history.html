@@ -17,13 +17,13 @@
 	  gtag('config', 'G-DHL70JGT4P');
 	</script>
 
-	<title>MiMaMu | Past Riddles Solutions</title>
+	<title>{{content["header"][lang]}} | {{content["history_header"][lang]}}</title>
 </head>
-<body id="game">
+<body id="game" dir={{"rtl" if lang == "he" else "ltr"}}>
 	<div style="padding: 50px;" align="center" class="article-container">
 		<div>
 			<a href="https://www.ishefi.com"><img src="https://www.ishefi.com/images/favicon.ico"></a>
-			<h1 id="header">Past Riddles Solutions</h1>
+			<h1 id="header">{{content["history_header"][lang]}}</h1>
 			<a href="/">
 				<span class="material-symbols-outlined">cottage</span>
 			</a>
@@ -32,7 +32,7 @@
 	<div class="row" style="text-align: center;" align="center">
   		<div id="image-container"></div>
   		<div id="pagination">
-			<a href="javascript:MiMaMu.getHistory();">load more...</a>
+			<a href="javascript:MiMaMu.getHistory();">{{content["more_history"][lang]}}</a>
 		</div>
 	</div>
 		<!-- Modal -->
@@ -43,12 +43,12 @@
   		</div>
 	</div>
 
-	<div align="center" style="padding: 50px;"> ❤️ MiMaMu?
-    <a href="https://ko-fi.com/ishefi" target="_blank">buy me ☕!</a>
+	<div align="center" style="padding: 50px;"> ❤️ {{content["header"][lang]}}?
+    <a href="https://ko-fi.com/ishefi" target="_blank">{{content["buy_me"][lang]}} ☕!</a>
     <br>
-    <a href="javascript:shareBtc();">or donate ₿</a>
+    <a href="javascript:shareBtc();">{{content["donate_btc"][lang]}} ₿</a>
     <br><br>
-    (you can also play <a href="https://degle.ishefi.com" target="_blank">degle🚩</a>)
+    ({{content["degle"][lang]}}<a href="https://degle.ishefi.com" target="_blank">degle🚩</a>)
     <br><br>
     Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2023
     <br>
