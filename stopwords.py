@@ -23,7 +23,6 @@ stopwords = (
     "across",
     "act",
     "actually",
-    "ad",
     "added",
     "adj",
     "ae",
@@ -732,11 +731,6 @@ stopwords = (
     "shouldn",
     "shouldn't",
     "should've",
-    "show",
-    "showed",
-    "shown",
-    "showns",
-    "shows",
     "si",
     "side",
     "significant",
@@ -942,6 +936,7 @@ stopwords = (
     "what'll",
     "whats",
     "what's",
+    "where",
     "whether",
     "which",
     "while",
@@ -1107,6 +1102,7 @@ he_stopwords = (
     "לו",
     "לזה",
     "לי",
+    "ליד",
     "לך",
     "לכולם",
     "לכל",
@@ -1148,7 +1144,7 @@ he_stopwords = (
 )
 
 punctuation = (",", ".", "'", "’")
-prompt_keywords = ("digital", "pop")
+prompt_keywords = ("digital", )
 all_stopwords = {
     "en": stopwords + punctuation + prompt_keywords,
     "he": he_stopwords + punctuation,
