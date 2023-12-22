@@ -79,6 +79,7 @@ def main():
         metavar="LANG",
         help="Language to set riddle for",
         choices=["he", "en"],
+        required=True,
     )
     parser.add_argument(
         "-d",
