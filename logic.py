@@ -4,6 +4,9 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+import requests
+
+from common import config
 from common.errors import MMMError
 import schemas
 import datetime
@@ -60,11 +63,23 @@ class RiddleLogic:
         if date is None:
             date = self.date
         if date not in self.riddle_cache:
+            self._check_max()  # this should not happen here
             riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
             self.riddle_cache[date] = schemas.GameData(**riddle)
         return self.riddle_cache[date].copy(deep=True)
+
+    def _check_max(self):
+        max_riddle = self.mongo_riddles.find_one({}, sort=[("date", -1)])
+        time_left = max_riddle["date"].date() - datetime.datetime.utcnow().date()
+        if time_left.days <= 3:
+            requests.post(
+                config.alerts_webhook,
+                json={
+                    "text": f"MiMaMu Alert: Only {time_left.days} days left for '{self.lang}'!"
+                },
+            )
 
     def set_riddle(self, riddle: schemas.GameData, force=False) -> None:
         if not force:
