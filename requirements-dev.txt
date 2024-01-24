@@ -1,6 +1,5 @@
 -r requirements.txt
 beautifulsoup4~=4.11.1
-requests==2.31.0
 types-requests==2.31.0.2
 Pillow~=10.0.1
 mongomock
