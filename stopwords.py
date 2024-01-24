@@ -1109,6 +1109,7 @@ he_stopwords = (
     "לכם",
     "למי",
     "לנו",
+    "לתוך",
     "מ",
     "מה",
     "מהם",
@@ -1144,7 +1145,7 @@ he_stopwords = (
 )
 
 punctuation = (",", ".", "'", "’")
-prompt_keywords = ("digital", )
+prompt_keywords = ("digital",)
 all_stopwords = {
     "en": stopwords + punctuation + prompt_keywords,
     "he": he_stopwords + punctuation,
