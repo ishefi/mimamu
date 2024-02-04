@@ -57,9 +57,10 @@ def get_bing(url):
     parsed = urllib.parse.urlparse(url)
     parsed_query = urllib.parse.parse_qs(parsed.query)
     (image_id,) = parsed_query["id"]
+    image_id_prefix = image_id.split('.')[0]
     newrl = f"https://www.bing.com{parsed.path}?{urllib.parse.urlencode({'imageId': image_id})}"
     images = requests.get(newrl).json()
-    image_data = next(data for data in images["value"] if data["imageId"] == image_id)
+    image_data = next(data for data in images["value"] if data["imageId"] == image_id or data["sicid"].startswith(image_id_prefix))
     prompt = image_data["name"]
     image_url = image_data["contentUrl"]
     author = input("Author? > ")
