@@ -422,9 +422,6 @@ stopwords = (
     "just",
     "k",
     "ke",
-    "keep",
-    "keeps",
-    "kept",
     "kg",
     "kj",
     "km",
@@ -1009,7 +1006,6 @@ stopwords = (
     "ys",
     "yt",
     "z",
-    "zero",
     "zi",
     "zz",
 )
