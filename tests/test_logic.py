@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
 
 import datetime
@@ -33,8 +34,12 @@ class TestRiddleLogic(TestCase):
             mongo_riddles={"en": self.riddles}, lang="en", date=self.date
         )
 
-    def unique(self, prefix):
+    def unique(self, prefix: str) -> str:
         return f"{prefix}-{uuid.uuid4().hex[:6]}"
+
+    def unique_az(self, length: int) -> str:
+        az = "abcdefghijklmnopqrstuvwxyz"
+        return "".join(random.choices(az, k=length))
 
     def patch(self, name, *args, **kwargs):
         if not args:
@@ -65,7 +70,7 @@ class TestRiddleLogic(TestCase):
         self, date: datetime.datetime | None = None, riddle_str: str | None = None
     ):
         if riddle_str is None:
-            words = [self.unique("w-") for _ in range(5)]
+            words = [self.unique_az(length=5) for _ in range(5)]
         else:
             words = riddle_str.split()
         if date is None:
