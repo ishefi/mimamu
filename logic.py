@@ -15,6 +15,7 @@ import stopwords
 
 if TYPE_CHECKING:
     import pymongo.collection
+    from typing import Any
 
 
 class RiddleLogic:
@@ -25,7 +26,7 @@ class RiddleLogic:
 
     def __init__(
         self,
-        mongo_riddles: dict[str, pymongo.collection.Collection],
+        mongo_riddles: dict[str, pymongo.collection.Collection[Any]],
         date: datetime.date,
         lang: str,
     ):
@@ -35,11 +36,11 @@ class RiddleLogic:
         self.lang = lang
 
     @property
-    def mongo_riddles(self):
+    def mongo_riddles(self) -> pymongo.collection.Collection[Any]:
         return self.all_mongo_riddles[self.lang]
 
     @property
-    def riddle_cache(self):
+    def riddle_cache(self) -> dict[datetime.date, schemas.GameData]:
         return self._all_riddle_cache[self.lang]
 
     def get_redacted_riddle(self) -> schemas.GameData:
@@ -68,8 +69,10 @@ class RiddleLogic:
             self.riddle_cache[date] = schemas.GameData(**riddle)
         return self.riddle_cache[date].model_copy(deep=True)
 
-    def _check_max(self):
+    def _check_max(self) -> None:
         max_riddle = self.mongo_riddles.find_one({}, sort=[("date", -1)])
+        if max_riddle is None:
+            raise MMMError(message="Error finding riddle", code=464353)
         time_left = max_riddle["date"].date() - datetime.datetime.utcnow().date()
         if time_left.days <= 3:
             requests.post(
@@ -79,7 +82,7 @@ class RiddleLogic:
                 },
             )
 
-    def set_riddle(self, riddle: schemas.GameData, force=False) -> None:
+    def set_riddle(self, riddle: schemas.GameData, force: bool = False) -> None:
         if not force:
             try:
                 existing_riddle = self.get_riddle_for_date(self.date)
@@ -92,7 +95,7 @@ class RiddleLogic:
             {"date": self.date}, {"$set": new_riddle}, upsert=True
         )
 
-    def guess(self, guess_word) -> schemas.GuessAnswer:
+    def guess(self, guess_word: str) -> schemas.GuessAnswer:
         for punctuation in stopwords.punctuation:
             guess_word = guess_word.replace(punctuation, "")
         riddle = self.get_riddle_for_date(self.date)
@@ -102,7 +105,7 @@ class RiddleLogic:
                 found_indices[i] = word
         return schemas.GuessAnswer(correct_guesses=found_indices)
 
-    def get_history(self, page) -> list[schemas.GameData]:
+    def get_history(self, page: int) -> list[schemas.GameData]:
         riddle_history = []
         for day in range(self.PAGE_SIZE):
             historia_date = self.date - datetime.timedelta(
@@ -116,6 +119,10 @@ class RiddleLogic:
     def clear_cache(self) -> None:
         self._all_riddle_cache.clear()
 
-    def get_first_riddle_date(self) -> datetime.date:
+    def get_first_riddle_date(self) -> datetime.datetime:
+        # TODO: cache this
         first_riddle = self.mongo_riddles.find_one({}, sort=[("date", 1)])
-        return first_riddle["date"]
+        if first_riddle is None:
+            raise MMMError(message="Error finding riddles", code=63456)
+        first_date: datetime.datetime = first_riddle["date"]
+        return first_date

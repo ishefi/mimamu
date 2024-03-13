@@ -9,7 +9,7 @@ from routers import routers
 from session import get_mongo
 
 
-def get_date_delta():
+def get_date_delta() -> int:
     today = datetime.utcnow().date()
     try:
         date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d")

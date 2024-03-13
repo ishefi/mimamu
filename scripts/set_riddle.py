@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 import os
@@ -12,6 +13,7 @@ import urllib.parse
 from PIL import Image
 from bs4 import BeautifulSoup
 import requests
+from typing import TYPE_CHECKING
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
@@ -21,26 +23,31 @@ from logic import RiddleLogic  # noqa
 import stopwords  # noqa
 import schemas  # noqa
 
+if TYPE_CHECKING:
+    from typing import Any
+    from typing import Literal
+    import pymongo.collection
+
 DALLE_AUTHOR = " × DALL·E | "
 
 
-def valid_date(date_str):
+def valid_date(date_str: str) -> date:
     try:
         return datetime.strptime(date_str, "%Y-%m-%d").date()
     except ValueError:
         raise ArgumentTypeError("Bad date: should be of the format YYYY-mm-dd")
 
 
-def get_date(mongo):
+def get_date(mongo: pymongo.collection.Collection[Any]) -> datetime:
     cursor = mongo.find({"date": {"$exists": 1}})
     cursor = cursor.sort("date", -1)
     latest = cursor.next()
-    date = latest["date"]
+    date: datetime = latest["date"]
     dt = date + timedelta(days=1)
     return dt
 
 
-def get_dalle_2(url):
+def get_dalle_2(url: str) -> tuple[str, str, str]:
     dalle_page = requests.get(url)
     html = BeautifulSoup(dalle_page.text, features="html.parser")
     if html.title is None:
@@ -52,22 +59,26 @@ def get_dalle_2(url):
     return prompt, image_url, author
 
 
-def get_bing(url):
+def get_bing(url: str) -> tuple[str, str, str]:
     url = re.sub("/create/.*/", "/create/detail/async/", url)
     parsed = urllib.parse.urlparse(url)
     parsed_query = urllib.parse.parse_qs(parsed.query)
     (image_id,) = parsed_query["id"]
-    image_id_prefix = image_id.split('.')[0]
+    image_id_prefix = image_id.split(".")[0]
     newrl = f"https://www.bing.com{parsed.path}?{urllib.parse.urlencode({'imageId': image_id})}"
     images = requests.get(newrl).json()
-    image_data = next(data for data in images["value"] if data["imageId"] == image_id or data["sicid"].startswith(image_id_prefix))
+    image_data = next(
+        data
+        for data in images["value"]
+        if data["imageId"] == image_id or data["sicid"].startswith(image_id_prefix)
+    )
     prompt = image_data["name"]
     image_url = image_data["contentUrl"]
     author = input("Author? > ")
     return prompt, image_url, author
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser("Set riddle")
     parser.add_argument(
         dest="url",
@@ -126,11 +137,19 @@ def main():
     print("done")
 
 
-def _approve_riddle(logic, riddle, prompt, force, lang):
+def _approve_riddle(
+    logic: RiddleLogic,
+    riddle: schemas.GameData,
+    prompt: str,
+    force: bool,
+    lang: Literal["en", "he"],
+) -> None:
     redacted = riddle.copy(deep=True)
     logic.redact(redacted)
     print(f"{riddle.author}'s Prompt: {prompt if lang == 'en' else prompt[::-1]}")
-    print(f"Redacted: {' '.join(redacted.words if lang == 'en' else reversed([word[::-1] for word in redacted.words]))}")
+    print(
+        f"Redacted: {' '.join(redacted.words if lang == 'en' else reversed([word[::-1] for word in redacted.words]))}"
+    )
     is_ok = input("Is ok? [cyN] ")
     if is_ok in ["y", "Y"]:
         logic.set_riddle(riddle, force=force)

@@ -9,10 +9,12 @@ from common import config
 
 if TYPE_CHECKING:
     import pymongo.collection
+    import pymongo.database
+    from typing import Any
 
 
-def get_mongo() -> dict[str, pymongo.collection.Collection]:
-    db: pymongo.collection.Database = MongoClient(config.mongo).MiMaMu
+def get_mongo() -> dict[str, pymongo.collection.Collection[Any]]:
+    db: pymongo.database.Database[Any] = MongoClient(config.mongo).MiMaMu
     return {
         "en": db.riddles,
         "he": db.hebrew_riddles,

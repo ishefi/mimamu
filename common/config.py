@@ -21,5 +21,5 @@ for k, v in conf.items():
     setattr(thismodule, str(k), v)
 
 
-def __getattr__(name) -> Any:
+def __getattr__(name: str) -> Any:
     pass
