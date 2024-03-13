@@ -89,7 +89,7 @@ class RiddleLogic:
                 raise ValueError(f"There is a riddle for this date: {existing_riddle}")
             except MMMError:
                 pass
-        new_riddle = riddle.dict()
+        new_riddle = riddle.model_dump()
         new_riddle.update({"date": self.date})
         self.mongo_riddles.update_one(
             {"date": self.date}, {"$set": new_riddle}, upsert=True
