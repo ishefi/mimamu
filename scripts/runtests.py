@@ -10,7 +10,7 @@ base = Path(__file__).absolute().parent.parent
 sys.path.extend([str(base)])
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser("Run unit tests")
     parser.add_argument(
         "--no-coverage", action="store_true", help="Do not add in coverage options"

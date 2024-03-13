@@ -17,16 +17,21 @@ import schemas
 
 if TYPE_CHECKING:
     import pymongo.collection
+    from unittest.mock import Mock
+    from typing import Any
+    from typing import Collection
+    from typing import Hashable
+    from typing import Mapping
 
 
-def pp(obj):
+def pp(obj: Any) -> str:
     """Format anything nicely."""
     return pprint.PrettyPrinter().pformat(obj)
 
 
 class TestRiddleLogic(TestCase):
     def setUp(self) -> None:
-        self.riddles: pymongo.collection.Collection = MongoClient().MiMaMu.riddles
+        self.riddles: pymongo.collection.Collection[Any] = MongoClient().MiMaMu.riddles
         self.datetime = datetime.datetime(1989, 12, 3)
         self.date = self.datetime.date()
         self.requests = self.patch("logic.requests")
@@ -41,23 +46,27 @@ class TestRiddleLogic(TestCase):
         az = "abcdefghijklmnopqrstuvwxyz"
         return "".join(random.choices(az, k=length))
 
-    def patch(self, name, *args, **kwargs):
+    def patch(self, name: str, *args: Any, **kwargs: Any) -> Mock:
         if not args:
             if "autospec" not in kwargs:
                 if "spec" not in kwargs:
                     kwargs["autospec"] = True
         patcher = mock.patch(name, *args, **kwargs)
-        mocker = patcher.start()
+        mocker: Mock = patcher.start()
         self.addCleanup(lambda p: p.stop(), patcher)
         return mocker
 
-    def assert_contains(self, haystack, needle):
+    def assert_contains(self, haystack: Collection[Any], needle: Any) -> Any | None:
         self.assertIsNotNone(haystack)
         self.assertIn(needle, haystack)
         if isinstance(haystack, dict):
             return haystack[needle]
+        else:
+            return None
 
-    def assert_contains_key_value(self, haystack, key, value):
+    def assert_contains_key_value(
+        self, haystack: Mapping[Any, Any], key: Hashable, value: Any
+    ) -> None:
         self.assertIsNotNone(haystack)
         actual = self.assert_contains(haystack, key)
         self.assertEqual(
@@ -68,7 +77,7 @@ class TestRiddleLogic(TestCase):
 
     def _mk_riddle(
         self, date: datetime.datetime | None = None, riddle_str: str | None = None
-    ):
+    ) -> dict[str, datetime.datetime | str | list[str]]:
         if riddle_str is None:
             words = [self.unique_az(length=5) for _ in range(5)]
         else:
@@ -82,7 +91,7 @@ class TestRiddleLogic(TestCase):
             "author": self.unique("Author"),
         }
 
-    def test_get_riddle_for_date(self):
+    def test_get_riddle_for_date(self) -> None:
         # arrange
         mongo_riddle = self._mk_riddle()
         self.riddles.insert_one(mongo_riddle)
@@ -95,7 +104,7 @@ class TestRiddleLogic(TestCase):
         self.assert_contains_key_value(mongo_riddle, "words", riddle.words)
         self.assert_contains_key_value(mongo_riddle, "author", riddle.author)
 
-    def test_get_riddle_for_date__from_cache(self):
+    def test_get_riddle_for_date__from_cache(self) -> None:
         # arrange
         mongo_riddle = self._mk_riddle()
         self.riddles.insert_one(mongo_riddle)
@@ -109,10 +118,13 @@ class TestRiddleLogic(TestCase):
         # assert
         self.assertEqual(cached, riddle)
 
-    def test_redact(self):
+    def test_redact(self) -> None:
         # arrange
         self._mk_riddle()
-        to_redact = schemas.GameData(**self._mk_riddle(riddle_str="I am happy"))
+
+        to_redact = schemas.GameData.model_validate(
+            self._mk_riddle(riddle_str="I am happy")
+        )
 
         # act
         self.testee.redact(to_redact)
@@ -120,10 +132,12 @@ class TestRiddleLogic(TestCase):
         # assert
         self.assertEqual(" ".join(to_redact.words), "I am █████")
 
-    def test_redact__punctuation(self):
+    def test_redact__punctuation(self) -> None:
         # arrange
         self._mk_riddle()
-        to_redact = schemas.GameData(**self._mk_riddle(riddle_str="I am happy , happy"))
+        to_redact = schemas.GameData.model_validate(
+            self._mk_riddle(riddle_str="I am happy , happy")
+        )
 
         # act
         self.testee.redact(to_redact)

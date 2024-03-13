@@ -13,6 +13,7 @@ from auth import verify_token
 from common import config
 from logic import RiddleLogic
 import schemas
+from typing import Any
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
@@ -20,7 +21,7 @@ game_router = APIRouter(prefix="/game")
 admin_router = APIRouter(prefix="/admin", dependencies=[Depends(verify_token)])
 
 
-def render(name: str, request, **kwargs):
+def render(name: str, request: Request, **kwargs: Any) -> HTMLResponse:
     kwargs["js_version"] = request.app.state.js_version
     kwargs["css_version"] = request.app.state.css_version
     kwargs["lang"] = request.cookies.get("lang", "en")
@@ -33,23 +34,23 @@ def render(name: str, request, **kwargs):
 
 
 @page_router.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def index(request: Request):
+async def index(request: Request) -> HTMLResponse:
     return render(name="index.html", request=request)
 
 
 @page_router.get("/history", response_class=HTMLResponse, include_in_schema=False)
-async def history(request: Request):
+async def history(request: Request) -> HTMLResponse:
     return render(name="history.html", request=request)
 
 
 @page_router.get("/lang/{lang}", response_class=RedirectResponse)
-async def language_change(request: Request, lang: str):
+async def language_change(request: Request, lang: str) -> RedirectResponse:
     response = RedirectResponse("/")
     response.set_cookie("lang", lang)
     return response
 
 
-def get_logic(request: Request):
+def get_logic(request: Request) -> RiddleLogic:
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
     date = datetime.datetime.utcnow().date() + days_delta
     mongo = request.app.state.mongo
@@ -76,7 +77,7 @@ async def guess(
 
 
 @game_router.get("/version")
-async def get_puzzle_version(request: Request) -> dict:
+async def get_puzzle_version(request: Request) -> dict[str, str]:
     return {"version": request.app.state.puzzle_version}
 
 
@@ -88,7 +89,9 @@ async def get_history(
 
 
 @game_router.get("/first-date")
-async def get_first_date(logic: RiddleLogic = Depends(get_logic)) -> dict:
+async def get_first_date(
+    logic: RiddleLogic = Depends(get_logic),
+) -> dict[str, datetime.date]:
     return {"first_date": logic.get_first_riddle_date()}
 
 
