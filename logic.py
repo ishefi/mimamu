@@ -43,7 +43,7 @@ class RiddleLogic:
         return self._all_riddle_cache[self.lang]
 
     def get_redacted_riddle(self) -> schemas.GameData:
-        riddle = self.get_riddle()
+        riddle = self.get_riddle_for_date(self.date)
         self.redact(riddle)
         return riddle
 
@@ -59,11 +59,9 @@ class RiddleLogic:
             if self._should_redact(word):
                 riddle.words[i] = "█" * len(word)
 
-    def get_riddle(self, date=None) -> schemas.GameData:
-        if date is None:
-            date = self.date
+    def get_riddle_for_date(self, date: datetime.datetime) -> schemas.GameData:
         if date not in self.riddle_cache:
-            self._check_max()  # this should not happen here
+            self._check_max()
             riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
@@ -84,7 +82,7 @@ class RiddleLogic:
     def set_riddle(self, riddle: schemas.GameData, force=False) -> None:
         if not force:
             try:
-                existing_riddle = self.get_riddle()
+                existing_riddle = self.get_riddle_for_date(self.date)
                 raise ValueError(f"There is a riddle for this date: {existing_riddle}")
             except MMMError:
                 pass
@@ -97,7 +95,7 @@ class RiddleLogic:
     def guess(self, guess_word) -> schemas.GuessAnswer:
         for punctuation in stopwords.punctuation:
             guess_word = guess_word.replace(punctuation, "")
-        riddle = self.get_riddle()
+        riddle = self.get_riddle_for_date(self.date)
         found_indices = {}
         for i, word in enumerate(riddle.words):
             if guess_word.lower() == word.lower():
@@ -112,7 +110,7 @@ class RiddleLogic:
             )
             if historia_date < self.get_first_riddle_date():
                 continue
-            riddle_history.append(self.get_riddle(historia_date))
+            riddle_history.append(self.get_riddle_for_date(historia_date))
         return riddle_history
 
     def clear_cache(self) -> None:
