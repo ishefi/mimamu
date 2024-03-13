@@ -66,7 +66,7 @@ class RiddleLogic:
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
             self.riddle_cache[date] = schemas.GameData(**riddle)
-        return self.riddle_cache[date].copy(deep=True)
+        return self.riddle_cache[date].model_copy(deep=True)
 
     def _check_max(self):
         max_riddle = self.mongo_riddles.find_one({}, sort=[("date", -1)])
