@@ -91,7 +91,7 @@ async def get_history(
 @game_router.get("/first-date")
 async def get_first_date(
     logic: RiddleLogic = Depends(get_logic),
-) -> dict[str, datetime.date]:
+) -> dict[str, datetime.datetime]:
     return {"first_date": logic.get_first_riddle_date()}
 
 
