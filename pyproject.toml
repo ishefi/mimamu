@@ -29,6 +29,7 @@ pre-commit = "^3.6.2"
 pytest = "^8.1.1"
 pytest-cov = "^4.1.0"
 mongomock = {git = "https://github.com/mongomock/mongomock.git", rev = "ff5186f"}
+freezegun = "^1.4.0"
 
 [tool.coverage.run]
 omit = [

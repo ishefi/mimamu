@@ -62,7 +62,8 @@ class RiddleLogic:
 
     def get_riddle_for_date(self, date: datetime.datetime) -> schemas.GameData:
         if date not in self.riddle_cache:
-            self._check_max()
+            if date == self.date:
+                self._check_max()
             riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
