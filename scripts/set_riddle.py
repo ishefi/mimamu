@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from datetime import date
