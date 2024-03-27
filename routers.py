@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi import Depends
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
@@ -13,7 +13,7 @@ from auth import verify_token
 from common import config
 from logic import RiddleLogic
 import schemas
-from typing import Any
+from typing import Any, Annotated
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
@@ -83,7 +83,7 @@ async def get_puzzle_version(request: Request) -> dict[str, str]:
 
 @game_router.get("/history")
 async def get_history(
-    page: int, logic: RiddleLogic = Depends(get_logic)
+    page: Annotated[int, Query(ge=0)], logic: RiddleLogic = Depends(get_logic)
 ) -> list[schemas.GameData]:
     return logic.get_history(page)
 
