@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 import os
 import sys
-from omegaconf import OmegaConf
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+from omegaconf import OmegaConf
 
 if TYPE_CHECKING:
     from typing import Any

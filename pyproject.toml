@@ -20,8 +20,6 @@ requests = "^2.31.0"
 beautifulsoup4 = "^4.12.3"
 types-requests = "^2.31.0.20240311"
 pillow = "^10.2.0"
-black = "^24.2.0"
-flake8 = "^7.0.0"
 mypy = "^1.9.0"
 types-beautifulsoup4 = "^4.12.0.20240229"
 types-pillow = "^10.2.0.20240311"
@@ -30,6 +28,7 @@ pytest = "^8.1.1"
 pytest-cov = "^4.1.0"
 mongomock = {git = "https://github.com/mongomock/mongomock.git", rev = "ff5186f"}
 freezegun = "^1.4.0"
+ruff = "^0.3.4"
 
 [tool.coverage.run]
 omit = [
@@ -39,6 +38,14 @@ branch = true
 
 [tool.mypy]
 strict = true
+
+[tool.ruff]
+lint.select = [
+  "E", # pycodestyle 
+  "F", # flake8
+  "I", # isort
+]
+lint.isort.force-single-line = true
 
 [build-system]
 requires = ["poetry-core"]

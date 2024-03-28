@@ -3,8 +3,8 @@
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
-import pytest
 
+import pytest
 
 base = Path(__file__).absolute().parent.parent
 sys.path.extend([str(base)])

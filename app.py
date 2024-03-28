@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import hashlib
-from datetime import datetime
 import os
+from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+
 from routers import routers
 from session import get_mongo
 

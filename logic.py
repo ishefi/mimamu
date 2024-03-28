@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import datetime
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import requests
 
+import schemas
+import stopwords
 from common import config
 from common.errors import MMMError
-import schemas
-import datetime
-
-import stopwords
 
 if TYPE_CHECKING:
-    import pymongo.collection
     from typing import Any
+
+    import pymongo.collection
 
 
 class RiddleLogic:
@@ -75,11 +75,11 @@ class RiddleLogic:
         if max_riddle is None:
             raise MMMError(message="Error finding riddle", code=464353)
         time_left = max_riddle["date"].date() - datetime.datetime.utcnow().date()
-        if time_left.days <= 3:
+        if (left := time_left.days) <= 3:
             requests.post(
                 config.alerts_webhook,
                 json={
-                    "text": f"MiMaMu Alert: Only {time_left.days} days left for '{self.lang}'!"
+                    "text": f"MiMaMu Alert: Only {left} days left for '{self.lang}'!"
                 },
             )
 

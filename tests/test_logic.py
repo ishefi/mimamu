@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
-import random
-from typing import TYPE_CHECKING
-
 import datetime
 import pprint
+import random
+import uuid
+from typing import TYPE_CHECKING
 from unittest import TestCase
 from unittest import mock
-import uuid
 
-from mongomock import MongoClient
 from freezegun import freeze_time
+from mongomock import MongoClient
 
+import schemas
 from common import config
 from logic import RiddleLogic
-import schemas
 
 if TYPE_CHECKING:
-    import pymongo.collection
-    from unittest.mock import Mock
     from typing import Any
     from typing import Collection
     from typing import Hashable
     from typing import Mapping
+    from unittest.mock import Mock
+
+    import pymongo.collection
 
 
 def pp(obj: Any) -> str:
@@ -78,7 +78,8 @@ class TestRiddleLogic(TestCase):
         self.assertEqual(
             value,
             actual,
-            msg=f'Expected dict["{key}"] to be {pp(value)}, got {pp(actual)}. Dict is: {pp(haystack)}',
+            msg=f'Expected dict["{key}"] to be {pp(value)}, '
+            f"got {pp(actual)}. Dict is: {pp(haystack)}",
         )
 
     def _mk_riddle(

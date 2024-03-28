@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import os
+import re
+import sys
+import urllib.parse
+import urllib.request
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
-import os
-import re
-import sys
-import urllib.request
-import urllib.parse
-
-from PIL import Image
-from bs4 import BeautifulSoup
-import requests
 from typing import TYPE_CHECKING
+
+import requests
+from bs4 import BeautifulSoup
+from PIL import Image
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
@@ -28,6 +28,7 @@ import schemas  # noqa
 if TYPE_CHECKING:
     from typing import Any
     from typing import Literal
+
     import pymongo.collection
 
 DALLE_AUTHOR = " × DALL·E | "
@@ -67,7 +68,8 @@ def get_bing(url: str) -> tuple[str, str, str]:
     parsed_query = urllib.parse.parse_qs(parsed.query)
     (image_id,) = parsed_query["id"]
     image_id_prefix = image_id.split(".")[0]
-    newrl = f"https://www.bing.com{parsed.path}?{urllib.parse.urlencode({'imageId': image_id})}"
+    parsed_image_id = urllib.parse.urlencode({"imageId": image_id})
+    newrl = f"https://www.bing.com{parsed.path}?{parsed_image_id}"
     images = requests.get(newrl).json()
     image_data = next(
         data
@@ -149,9 +151,11 @@ def _approve_riddle(
     redacted = riddle.copy(deep=True)
     logic.redact(redacted)
     print(f"{riddle.author}'s Prompt: {prompt if lang == 'en' else prompt[::-1]}")
-    print(
-        f"Redacted: {' '.join(redacted.words if lang == 'en' else reversed([word[::-1] for word in redacted.words]))}"
-    )
+    if lang == "he":
+        redacted_words = " ".join([word[::-1] for word in redacted.words])
+    else:
+        redacted_words = " ".join(redacted.words)
+    print(f"Redacted: {redacted_words}")
     is_ok = input("Is ok? [cyN] ")
     if is_ok in ["y", "Y"]:
         logic.set_riddle(riddle, force=force)

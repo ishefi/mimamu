@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 import datetime
+from typing import Annotated
+from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import Query
+from fastapi import status
+from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
-from fastapi.requests import Request
 from fastapi.templating import Jinja2Templates
-from fastapi import status
 
+import schemas
 from auth import verify_token
 from common import config
 from logic import RiddleLogic
-import schemas
-from typing import Any, Annotated
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
