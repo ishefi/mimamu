@@ -153,7 +153,9 @@ class TestRiddleLogic(TestCase):
 
     def test_get_riddle__alert_on_not_many_riddles_left(self) -> None:
         # arrange
-        newest_riddle = self._mk_riddle(date=self.testee.date + datetime.timedelta(days=2))
+        newest_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=2)
+        )
         today_riddle = self._mk_riddle(date=self.testee.date)
         self.riddles.insert_many([newest_riddle, today_riddle])
 
@@ -168,7 +170,9 @@ class TestRiddleLogic(TestCase):
 
     def test_get_riddle__do_not_alert_if_enough_days_left(self) -> None:
         # arrange
-        newest_riddle = self._mk_riddle(date=self.testee.date + datetime.timedelta(days=4))
+        newest_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=4)
+        )
         today_riddle = self._mk_riddle(date=self.testee.date)
         self.riddles.insert_many([newest_riddle, today_riddle])
 
@@ -180,8 +184,12 @@ class TestRiddleLogic(TestCase):
 
     def test_get_riddle__do_not_alert_if_not_getting_todays_riddle(self) -> None:
         # arrange
-        newest_riddle = self._mk_riddle(date=self.testee.date + datetime.timedelta(days=2))
-        tomorrow_riddle = self._mk_riddle(date=self.testee.date + datetime.timedelta(days=1))
+        newest_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=2)
+        )
+        tomorrow_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=1)
+        )
         today_riddle = self._mk_riddle(date=self.testee.date)
         self.riddles.insert_many([newest_riddle, tomorrow_riddle, today_riddle])
 
