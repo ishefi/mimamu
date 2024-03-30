@@ -15,8 +15,6 @@ from common import config
 from common.errors import MMMError
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import pymongo.collection
 
 
@@ -28,7 +26,7 @@ class RiddleLogic:
 
     def __init__(
         self,
-        mongo_riddles: dict[str, pymongo.collection.Collection[Any]],
+        mongo_riddles: dict[str, pymongo.collection.Collection[schemas.GameDataDict]],
         date: datetime.date,
         lang: str,
     ):
@@ -38,7 +36,7 @@ class RiddleLogic:
         self.lang = lang
 
     @property
-    def mongo_riddles(self) -> pymongo.collection.Collection[Any]:
+    def mongo_riddles(self) -> pymongo.collection.Collection[schemas.GameDataDict]:
         return self.all_mongo_riddles[self.lang]
 
     @property
@@ -69,14 +67,18 @@ class RiddleLogic:
             riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
-            self.riddle_cache[date] = schemas.GameData(**riddle)
+            self.riddle_cache[date] = schemas.GameData(
+                picture=riddle["picture"],
+                words=riddle["words"],
+                date=riddle["date"],
+                author=riddle["author"],
+                dalle=riddle["dalle"] or 2,
+            )
         return self.riddle_cache[date].model_copy(deep=True)
 
     def _check_max(self) -> None:
-        max_riddle = self.mongo_riddles.find_one({}, sort=[("date", -1)])
-        if max_riddle is None:
-            raise MMMError(message="Error finding riddle", code=464353)
-        time_left = max_riddle["date"].date() - datetime.datetime.utcnow().date()
+        max_riddle_date = self.get_max_riddle_date()
+        time_left = max_riddle_date - datetime.datetime.utcnow().date()
         if (left := time_left.days) <= 3:
             requests.post(
                 config.alerts_webhook,
@@ -84,6 +86,13 @@ class RiddleLogic:
                     "text": f"MiMaMu Alert: Only {left} days left for '{self.lang}'!"
                 },
             )
+
+    def get_max_riddle_date(self) -> datetime.date:
+        max_riddle = self.mongo_riddles.find_one({}, sort=[("date", -1)])
+        if max_riddle is None:
+            raise MMMError(message="Error finding riddle", code=464353)
+        riddle_date: datetime.datetime = max_riddle["date"]
+        return riddle_date.date()
 
     def set_riddle(self, riddle: schemas.GameData, force: bool = False) -> None:
         if not force:

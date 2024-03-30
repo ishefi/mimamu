@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from pymongo import MongoClient
 
+import schemas
 from common import config
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     import pymongo.database
 
 
-def get_mongo() -> dict[str, pymongo.collection.Collection[Any]]:
+def get_mongo() -> dict[str, pymongo.collection.Collection[schemas.GameDataDict]]:
     db: pymongo.database.Database[Any] = MongoClient(config.mongo).MiMaMu
     return {
         "en": db.riddles,

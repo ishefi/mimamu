@@ -10,20 +10,21 @@ from mongomock import MongoClient
 
 import schemas
 from common import config
+from common.errors import MMMError
 from logic import ParseRiddleLogic
 from logic import RiddleLogic
 from mocks import MMMTestCase
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import pymongo.collection
 
 
 @freeze_time("1989-12-03")
 class TestRiddleLogic(MMMTestCase):
     def setUp(self) -> None:
-        self.riddles: pymongo.collection.Collection[Any] = MongoClient().MiMaMu.riddles
+        self.riddles: pymongo.collection.Collection[
+            schemas.GameDataDict
+        ] = MongoClient().MiMaMu.riddles
         self.datetime = datetime.datetime.utcnow()  # from freezegun
         self.date = self.datetime.date()
         self.m_requests = self.patch("logic.requests")
@@ -36,7 +37,7 @@ class TestRiddleLogic(MMMTestCase):
 
     def _mk_riddle(
         self, date: datetime.datetime | None = None, riddle_str: str | None = None
-    ) -> dict[str, datetime.datetime | str | list[str]]:
+    ) -> schemas.GameDataDict:
         if riddle_str is None:
             words = [self.unique_az(length=5) for _ in range(5)]
         else:
@@ -48,6 +49,7 @@ class TestRiddleLogic(MMMTestCase):
             "picture": self.unique("https://pic.com/s/"),
             "words": words,
             "author": self.unique("Author"),
+            "dalle": 3,
         }
 
     def test_get_riddle_for_date(self) -> None:
@@ -69,7 +71,7 @@ class TestRiddleLogic(MMMTestCase):
         self.riddles.insert_one(mongo_riddle)
         cached = self.testee.get_riddle_for_date(self.datetime)
         new_riddle = self._mk_riddle()
-        self.riddles.update_one({"_id": mongo_riddle["_id"]}, {"$set": new_riddle})
+        self.riddles.update_one({"date": mongo_riddle["date"]}, {"$set": new_riddle})
 
         # act
         riddle = self.testee.get_riddle_for_date(self.datetime)
@@ -151,6 +153,26 @@ class TestRiddleLogic(MMMTestCase):
 
         # assert
         self.m_requests.post.assert_not_called()
+
+    def test_get_max_riddle_date(self) -> None:
+        # arrange
+        newest_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=2)
+        )
+        self.riddles.insert_one(newest_riddle)
+
+        # act
+        max_riddle_date = self.testee.get_max_riddle_date()
+
+        # assert
+        newest_dt = newest_riddle["date"]
+        self.assertEqual(newest_dt.date(), max_riddle_date)
+
+    def test_get_max_riddle_date__no_riddles(self) -> None:
+        # act & assert
+        with self.assertRaises(MMMError) as exc:
+            self.testee.get_max_riddle_date()
+        self.assertEqual(exc.exception.code, 464353)
 
 
 class TestParseRiddleLogic(MMMTestCase):
