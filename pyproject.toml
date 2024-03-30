@@ -33,6 +33,7 @@ ruff = "^0.3.4"
 [tool.coverage.run]
 omit = [
     "scripts/*",
+    "mocks.py",
 ]
 branch = true
 

@@ -5,11 +5,14 @@ from typing import Self
 from pydantic import BaseModel
 
 
-class GameData(BaseModel):
+class BasicGameData(BaseModel):
     picture: str
     words: list[str]
-    author: str
+
+
+class GameData(BasicGameData):
     date: datetime.date | None = None
+    author: str
     dalle: int = 2
 
 

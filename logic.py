@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import datetime
+import re
+import urllib.parse
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
@@ -127,3 +129,46 @@ class RiddleLogic:
             raise MMMError(message="Error finding riddles", code=63456)
         first_date: datetime.datetime = first_riddle["date"]
         return first_date
+
+
+class ParseRiddleLogic:
+    PARSE_URL_RE = re.compile(r"/create/.*/")
+
+    def __init__(self, url: str):
+        self.url = url
+
+    def parse_riddle(self) -> schemas.BasicGameData:
+        parsed_path, image_id, image_id_prefix = self._parse_url()
+        prompt, image_url = self._fetch_image_data(
+            parsed_path, image_id, image_id_prefix
+        )
+        return schemas.BasicGameData(
+            picture=image_url, words=self._parse_prompt(prompt)
+        )
+
+    def _parse_url(self) -> tuple[str, str, str]:
+        url = self.PARSE_URL_RE.sub("/create/detail/async/", self.url)
+        parsed = urllib.parse.urlparse(url)
+        parsed_query = urllib.parse.parse_qs(parsed.query)
+        (image_id,) = parsed_query["id"]
+        image_id_prefix = image_id.split(".")[0]
+        return parsed.path, image_id, image_id_prefix
+
+    @staticmethod
+    def _fetch_image_data(
+        parsed_path: str, image_id: str, image_id_prefix: str
+    ) -> tuple[str, str]:
+        query = urllib.parse.urlencode({"imageId": image_id})
+        newrl = f"https://www.bing.com{parsed_path}?{query}"
+        images = requests.get(newrl).json()
+        for data in images["value"]:
+            if data["imageId"] == image_id or data["sicid"].startswith(image_id_prefix):
+                return data["name"], data["contentUrl"]
+        raise MMMError(code=624532, message=f"Image data not found for {image_id}")
+
+    @staticmethod
+    def _parse_prompt(prompt: str) -> list[str]:
+        prompt = prompt.replace("-", " ")
+        for punct in stopwords.punctuation:
+            prompt = prompt.replace(punct, f" {punct} ")
+        return prompt.strip().split()
