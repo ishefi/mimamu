@@ -6,8 +6,8 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from common import config
 from routers import routers
-from session import get_mongo
 
 
 def get_date_delta() -> int:
@@ -31,10 +31,8 @@ with open(STATIC_FOLDER + "/styles.css", "rb") as f:
 CSS_VERSION = css_hasher.hexdigest()[:8]
 
 app = FastAPI()
-app.state.mongo = get_mongo()
 app.state.date_delta = get_date_delta()
-app.state.puzzle_version = os.environ.get("PUZZLE_VERSION", "")
-app.state.secret_token = os.environ["SECRET_TOKEN"]
+app.state.puzzle_version = config.PUZZEL_VERSION
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
 

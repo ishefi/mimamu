@@ -3,6 +3,7 @@ import datetime
 from typing import Annotated
 from typing import Any
 
+import pymongo
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Query
@@ -16,6 +17,7 @@ import schemas
 from auth import verify_token
 from common import config
 from logic import RiddleLogic
+from session import get_mongo
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
@@ -52,10 +54,14 @@ async def language_change(request: Request, lang: str) -> RedirectResponse:
     return response
 
 
-def get_logic(request: Request) -> RiddleLogic:
+def get_logic(
+    request: Request,
+    mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
+        get_mongo
+    ),
+) -> RiddleLogic:
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
     date = datetime.datetime.utcnow().date() + days_delta
-    mongo = request.app.state.mongo
     return RiddleLogic(
         mongo_riddles=mongo,
         date=date,
