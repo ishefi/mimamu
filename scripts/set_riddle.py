@@ -12,15 +12,12 @@ from datetime import datetime
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-import requests
-from bs4 import BeautifulSoup
 from PIL import Image
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
 import schemas  # noqa: E402
-import stopwords  # noqa: E402
 from logic import ParseRiddleLogic  # noqa: E402
 from logic import RiddleLogic  # noqa: E402
 from session import get_mongo  # noqa: E402
@@ -30,8 +27,6 @@ if TYPE_CHECKING:
     from typing import Literal
 
     import pymongo.collection
-
-DALLE_AUTHOR = " × DALL·E | "
 
 
 def valid_date(date_str: str) -> date:
@@ -48,23 +43,6 @@ def get_date(mongo: pymongo.collection.Collection[Any]) -> datetime:
     date: datetime = latest["date"]
     dt = date + timedelta(days=1)
     return dt
-
-
-def get_dalle_2(url: str) -> tuple[schemas.BasicGameData, str]:
-    dalle_page = requests.get(url)
-    html = BeautifulSoup(dalle_page.text, features="html.parser")
-    if html.title is None:
-        raise ValueError("Invalid page title, check URL")
-    raw_prompt = html.title.text
-    author, prompt = raw_prompt.split(DALLE_AUTHOR)
-    (meta_image,) = html.find_all("meta", property="og:image")
-    image_url = meta_image.get("content")
-    prompt = prompt.replace("-", " ")
-    for punct in stopwords.punctuation:
-        prompt = prompt.replace(punct, f" {punct} ")
-    prompt_words = prompt.strip().split()
-    basic_riddle = schemas.BasicGameData(picture=image_url, words=prompt_words)
-    return basic_riddle, author
 
 
 def main() -> None:
@@ -103,14 +81,9 @@ def main() -> None:
     url = args.url
     print(f"doing {date}")
     while url:
-        if "bing" in url.lower():
-            parse_logic = ParseRiddleLogic(url=url)
-            basic_riddle = parse_logic.parse_riddle()
-            author = input("Author? > ")
-            dalle = 3
-        else:
-            basic_riddle, author = get_dalle_2(url)
-            dalle = 2
+        parse_logic = ParseRiddleLogic(url=url)
+        basic_riddle = parse_logic.parse_riddle()
+        author = input("Author? > ")
         urllib.request.urlretrieve(basic_riddle.picture, "tmp.png")
         with Image.open("tmp.png") as img:
             img.show()
@@ -118,10 +91,11 @@ def main() -> None:
             picture=basic_riddle.picture,
             words=basic_riddle.words,
             author=author,
-            dalle=dalle,
+            dalle=3,
         )
         logic = RiddleLogic(mongo_riddles=mongo, date=date, lang=args.lang)
         _approve_riddle(logic, riddle, args.force, args.lang)
+        logic.get_first_riddle_date()
         date = get_date(mongo[args.lang])
         url = input(f"doing {date}\nNew URL > ")
     print("done")
