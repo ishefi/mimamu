@@ -37,6 +37,12 @@ omit = [
 ]
 branch = true
 
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
+
 [tool.mypy]
 strict = true
 
