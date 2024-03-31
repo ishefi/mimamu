@@ -14,7 +14,7 @@ def get_date_delta() -> int:
     try:
         date = datetime.strptime(config.GAME_DATE, "%Y-%m-%d")
         return (date.date() - today).days
-    except ValueError:
+    except (ValueError, TypeError):
         return 0
 
 
