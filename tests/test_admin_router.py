@@ -1,8 +1,11 @@
+import datetime
+
 from fastapi.testclient import TestClient
 
 import schemas
 from app import app
 from mocks import MMMTestCase
+from routers import get_logic
 
 
 class TestAdminRouter(MMMTestCase):
@@ -10,6 +13,10 @@ class TestAdminRouter(MMMTestCase):
         self.client = TestClient(app)
         self.m_ParseUrlLogic = self.patch("routers.ParseRiddleLogic")
         self.m_parse_url_logic = self.m_ParseUrlLogic.return_value
+        self.m_riddle_logic = self.patch("routers.RiddleLogic").return_value
+        app.dependency_overrides[get_logic] = (
+            lambda: self.m_riddle_logic
+        )  # TODO: teardown?
         self.m_config.SECRET_TOKEN = "test_secret_token"
 
     def test_bad_token(self) -> None:
@@ -53,3 +60,40 @@ class TestAdminRouter(MMMTestCase):
         # assert
         self.assertEqual(200, ret.status_code)
         self.assertIn("<title>Set Riddle</title>", ret.text)
+
+    def test_check_riddle(self) -> None:
+        # arrange
+        self.m_riddle_logic.get_max_riddle_date.return_value = datetime.date(
+            1989, 12, 3
+        )
+
+        def mock_redact(riddle: schemas.GameData) -> None:
+            riddle.words = ["redacted!"]
+
+        self.m_riddle_logic.redact.side_effect = mock_redact
+
+        riddle_to_check = schemas.GameData(
+            picture=self.unique("https://bing.com/image.jpg"),
+            words=["john", "is", "happy"],
+            author=self.unique("author"),
+            dalle=3,
+        )
+
+        # act
+        ret = self.client.post(
+            "/admin/set-riddle/check",
+            headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
+            json=riddle_to_check.model_dump(),
+        )
+
+        # assert
+        self.assertEqual(200, ret.status_code)
+        checked = ret.json()
+        self.assert_contains_key_value(checked, "picture", riddle_to_check.picture)
+        self.assert_contains_key_value(checked, "words", ["redacted!"])
+        self.assert_contains_key_value(checked, "author", riddle_to_check.author)
+        self.assert_contains_key_value(checked, "dalle", 3)
+        self.assert_contains_key_value(checked, "date", "1989-12-04")
+
+        self.m_riddle_logic.redact.assert_called_once()
+        self.m_riddle_logic.get_max_riddle_date.assert_called_once()

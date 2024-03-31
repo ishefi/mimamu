@@ -42,11 +42,16 @@
 	<br>
 	<textarea id="redacted" rows="1" cols="50" readonly></textarea>
 	<br>
+	<label for="date">Date:</label>
+	<input type="date" id="date" name="Date" readonly>
+	<br>
 	<label for="author">Author:</label>
 	<input type="text" id="author" name="Author" required>
 	<br>
 	<button type="submit" id="check">Check</button>
     <br>
+	<br>
+	<br>
 	<button type="submit" id="approve">Approve</button>
 </div>
 
@@ -56,7 +61,7 @@
 <footer>
     <script>
 		const urlParams = new URLSearchParams(window.location.search);
-		const token = urlParams.get('mmm-token');
+		const token = urlParams.get('mmm_token');
         document.getElementById("submit").addEventListener("click", function() {
             fetch("/admin/set-riddle/info?" + new URLSearchParams({"url": document.getElementById("url").value}), {
                 method: "GET",
@@ -79,6 +84,33 @@
                 console.log(error);
             });
         });
+		document.getElementById("check").addEventListener("click", function() {
+			fetch("/admin/set-riddle/check?lang=" + document.getElementById("language").value, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-MMM-Token": token,
+				},
+				body: JSON.stringify({
+					"picture": document.getElementById("riddle-image").src,
+					"words": document.getElementById("prompt").value.split(" "),
+					"author": document.getElementById("author").value,
+					"dalle": 3,
+				}),
+			}).then((response) => {
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw new Error("Failed to check riddle");
+				}
+			}).then((redacted) => {
+				console.log(redacted);
+				document.getElementById("redacted").value = redacted.words.join(" ");
+				document.getElementById("date").value = redacted.date;
+			}).catch((error) => {
+				console.log(error);
+			});
+		});
     </script>
 
 </footer>
