@@ -14,7 +14,6 @@ uvicorn = {extras = ["standard"], version = "^0.28.0"}
 omegaconf = "^2.3.0"
 pymongo = "^4.6.2"
 requests = "^2.31.0"
-httpx = "^0.27.0"
 
 
 [tool.poetry.group.dev.dependencies]
