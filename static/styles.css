@@ -705,10 +705,13 @@ html, body {
   display: inline-block;
 }
 
+textarea {
+  max-width: 100%;
+  font-size: 14px;
+}
 
 @media only screen and (max-width: 640px) {
-    body, input {
-        font-size: 14px;
+    body, input, textarea {
     }
 
     #guess-text {

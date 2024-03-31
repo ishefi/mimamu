@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="static/styles.css?version={{css_version}}">
+	<link rel="stylesheet" href="/static/styles.css?version={{css_version}}">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 	<script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
 	<script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
@@ -21,38 +21,49 @@
 </head>
 <body>
 
-<div id="post-riddle">
-
-<label for="url">Image Url:</label>
-<input type="text" id="url" name="url" required>
-<button type="submit" id="submit">Submit</button>
+<div id="post-riddle" style="display: grid; justify-content: center">
+	<div class="row">
+		<label for="url">Image Url:</label>
+		<input type="text" id="url" name="url" required>
+		<button type="submit" id="submit">Submit</button>
+	</div>
 </div>
 
-<div id="approve-riddle" style="visibility: hidden">
+<div id="approve-riddle" style="visibility: hidden; display: grid; justify-content: center">
 	<br>
-	<label for="language">Choose a language:</label>
-	<select name="language" id="language">
-		<option value="en">English</option>
-		<option value="he">Hebrew</option>
-	</select>
-	<br>
-	<img id="riddle-image" src="" alt="Riddle Image" width="50%" height="auto">
-	<br>
-	<textarea id="prompt" rows="1" cols="100"></textarea>
-	<br>
-	<textarea id="redacted" rows="1" cols="100" readonly></textarea>
-	<br>
-	<label for="date">Date:</label>
-	<input type="date" id="date" name="Date" readonly>
-	<br>
-	<label for="author">Author:</label>
-	<input type="text" id="author" name="Author" required>
-	<br>
-	<button type="submit" id="check">Check</button>
-    <br>
-	<br>
-	<br>
-	<button type="submit" id="approve">Approve</button>
+
+	<br><div class="row">
+		<img id="riddle-image" src="" alt="Riddle Image" width="60%" height="auto">
+	</div>
+	<div class="row">
+		<div class="column">
+			<label for="language">Choose a language:</label>
+			<select name="language" id="language">
+				<option value="en">English</option>
+				<option value="he">Hebrew</option>
+			</select>
+		</div>
+	</div>
+	<div class="row">
+		<textarea id="prompt" rows="3" style="width: 90%"></textarea>
+	</div>
+	<div class="row">
+		<textarea id="redacted" rows="3" style="width: 90%" readonly></textarea>
+	</div>
+	<div class="row">
+		<button type="submit" id="check">Check</button>
+	</div>
+	<br><div class="row">
+		<label for="date">Date:</label>
+		<input type="date" id="date" name="Date" readonly>
+	</div>
+	<br><div class="row">
+		<label for="author">Author:</label>
+		<input type="text" id="author" name="Author" required>
+	</div>
+	<br><div class="row">
+		<button type="submit" id="approve">Approve</button>
+	</div>
 </div>
 
 
