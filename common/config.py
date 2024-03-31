@@ -18,6 +18,9 @@ if (config_path := Path(__file__).parent.parent.resolve() / "config.yaml").exist
     conf.merge_with(OmegaConf.load(config_path))
 if yaml_str := os.environ.get("YAML_CONFIG_STR"):
     conf.merge_with(OmegaConf.create(yaml_str))
+for var, val in os.environ.items():
+    if var.startswith("MMM_"):
+        conf[var[4:]] = val
 for k, v in conf.items():
     setattr(thismodule, str(k), v)
 

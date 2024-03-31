@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import datetime
-from typing import Annotated
 from typing import Any
 
+import pymongo
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Query
@@ -15,7 +15,9 @@ from fastapi.templating import Jinja2Templates
 import schemas
 from auth import verify_token
 from common import config
+from logic import ParseRiddleLogic
 from logic import RiddleLogic
+from session import get_mongo
 
 templates = Jinja2Templates(directory="templates")
 page_router = APIRouter()
@@ -28,9 +30,9 @@ def render(name: str, request: Request, **kwargs: Any) -> HTMLResponse:
     kwargs["css_version"] = request.app.state.css_version
     kwargs["lang"] = request.cookies.get("lang", "en")
     kwargs["content"] = config.html_content
-    kwargs["request"] = request
     return templates.TemplateResponse(
-        name,
+        name=name,
+        request=request,
         context=kwargs,
     )
 
@@ -41,8 +43,12 @@ async def index(request: Request) -> HTMLResponse:
 
 
 @page_router.get("/history", response_class=HTMLResponse, include_in_schema=False)
-async def history(request: Request) -> HTMLResponse:
-    return render(name="history.html", request=request)
+async def history(
+    request: Request, future: bool = False, mmm_token: str | None = None
+) -> HTMLResponse:
+    if future:
+        verify_token(mmm_token=mmm_token)
+    return render(name="history.html", request=request, future=future)
 
 
 @page_router.get("/lang/{lang}", response_class=RedirectResponse)
@@ -52,14 +58,32 @@ async def language_change(request: Request, lang: str) -> RedirectResponse:
     return response
 
 
-def get_logic(request: Request) -> RiddleLogic:
+def get_logic(
+    request: Request,
+    mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
+        get_mongo
+    ),
+) -> RiddleLogic:
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
     date = datetime.datetime.utcnow().date() + days_delta
-    mongo = request.app.state.mongo
     return RiddleLogic(
         mongo_riddles=mongo,
         date=date,
         lang=request.cookies.get("lang", "en"),
+    )
+
+
+def get_admin_logic(
+    mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
+        get_mongo
+    ),
+    lang: str = Query(...),
+    date: datetime.date = Query(...),
+) -> RiddleLogic:
+    return RiddleLogic(
+        mongo_riddles=mongo,
+        date=date,
+        lang=lang,
     )
 
 
@@ -85,8 +109,10 @@ async def get_puzzle_version(request: Request) -> dict[str, str]:
 
 @game_router.get("/history")
 async def get_history(
-    page: Annotated[int, Query(ge=0)], logic: RiddleLogic = Depends(get_logic)
+    page: int, logic: RiddleLogic = Depends(get_logic), mmm_token: str | None = None
 ) -> list[schemas.GameData]:
+    if page < 0:
+        verify_token(mmm_token=mmm_token)
     return logic.get_history(page)
 
 
@@ -100,6 +126,35 @@ async def get_first_date(
 @admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
     logic.clear_cache()
+
+
+@admin_router.get("/set-riddle", include_in_schema=False)
+async def set_riddle_page(request: Request) -> HTMLResponse:
+    return render(name="set_riddle.html", request=request)
+
+
+@admin_router.get("/set-riddle/info")
+async def get_riddle_info(
+    url: str = Query(..., description="URL of the riddle"),
+) -> schemas.BasicGameData:
+    parse_logic = ParseRiddleLogic(url)
+    return parse_logic.parse_riddle()
+
+
+@admin_router.post("/set-riddle/check")
+async def check_riddle(
+    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_admin_logic)
+) -> schemas.GameData:
+    logic.redact(riddle)
+    riddle.date = logic.get_max_riddle_date() + datetime.timedelta(days=1)
+    return riddle
+
+
+@admin_router.post("/set-riddle")
+async def set_riddle(
+    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_admin_logic)
+) -> None:
+    logic.set_riddle(riddle, force=False)  # TODO: allow forcing?
 
 
 routers = [page_router, game_router, admin_router]

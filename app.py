@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 import hashlib
-import os
 from datetime import datetime
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from common import config
 from routers import routers
-from session import get_mongo
 
 
 def get_date_delta() -> int:
     today = datetime.utcnow().date()
     try:
-        date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d")
+        date = datetime.strptime(config.GAME_DATE, "%Y-%m-%d")
         return (date.date() - today).days
-    except ValueError:
+    except (ValueError, TypeError):
         return 0
 
 
@@ -31,10 +30,8 @@ with open(STATIC_FOLDER + "/styles.css", "rb") as f:
 CSS_VERSION = css_hasher.hexdigest()[:8]
 
 app = FastAPI()
-app.state.mongo = get_mongo()
 app.state.date_delta = get_date_delta()
-app.state.puzzle_version = os.environ.get("PUZZLE_VERSION", "")
-app.state.secret_token = os.environ["SECRET_TOKEN"]
+app.state.puzzle_version = config.PUZZEL_VERSION
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
 

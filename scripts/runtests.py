@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
@@ -8,6 +7,8 @@ import pytest
 
 base = Path(__file__).absolute().parent.parent
 sys.path.extend([str(base)])
+
+from mocks import install_loader_patcher  # noqa: E402
 
 
 def main() -> None:
@@ -30,6 +31,7 @@ def main() -> None:
 
     print(f"pytest {' '.join(args)}", file=sys.stderr)
 
+    install_loader_patcher()  # TODO: use pytest fixture
     return_value = pytest.main(args)
 
     raise SystemExit(return_value)

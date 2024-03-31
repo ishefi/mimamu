@@ -2,39 +2,29 @@
 from __future__ import annotations
 
 import datetime
-import pprint
-import random
-import uuid
+import urllib.parse
 from typing import TYPE_CHECKING
-from unittest import TestCase
-from unittest import mock
 
 from freezegun import freeze_time
 from mongomock import MongoClient
 
 import schemas
 from common import config
+from common.errors import MMMError
+from logic import ParseRiddleLogic
 from logic import RiddleLogic
+from mocks import MMMTestCase
 
 if TYPE_CHECKING:
-    from typing import Any
-    from typing import Collection
-    from typing import Hashable
-    from typing import Mapping
-    from unittest.mock import Mock
-
     import pymongo.collection
 
 
-def pp(obj: Any) -> str:
-    """Format anything nicely."""
-    return pprint.PrettyPrinter().pformat(obj)
-
-
 @freeze_time("1989-12-03")
-class TestRiddleLogic(TestCase):
+class TestRiddleLogic(MMMTestCase):
     def setUp(self) -> None:
-        self.riddles: pymongo.collection.Collection[Any] = MongoClient().MiMaMu.riddles
+        self.riddles: pymongo.collection.Collection[schemas.GameDataDict] = (
+            MongoClient().MiMaMu.riddles
+        )
         self.datetime = datetime.datetime.utcnow()  # from freezegun
         self.date = self.datetime.date()
         self.m_requests = self.patch("logic.requests")
@@ -45,46 +35,9 @@ class TestRiddleLogic(TestCase):
     def tearDown(self) -> None:
         RiddleLogic._all_riddle_cache.clear()
 
-    def unique(self, prefix: str) -> str:
-        return f"{prefix}-{uuid.uuid4().hex[:6]}"
-
-    def unique_az(self, length: int) -> str:
-        az = "abcdefghijklmnopqrstuvwxyz"
-        return "".join(random.choices(az, k=length))
-
-    def patch(self, name: str, *args: Any, **kwargs: Any) -> Mock:
-        if not args:
-            if "autospec" not in kwargs:
-                if "spec" not in kwargs:
-                    kwargs["autospec"] = True
-        patcher = mock.patch(name, *args, **kwargs)
-        mocker: Mock = patcher.start()
-        self.addCleanup(lambda p: p.stop(), patcher)
-        return mocker
-
-    def assert_contains(self, haystack: Collection[Any], needle: Any) -> Any | None:
-        self.assertIsNotNone(haystack)
-        self.assertIn(needle, haystack)
-        if isinstance(haystack, dict):
-            return haystack[needle]
-        else:
-            return None
-
-    def assert_contains_key_value(
-        self, haystack: Mapping[Any, Any], key: Hashable, value: Any
-    ) -> None:
-        self.assertIsNotNone(haystack)
-        actual = self.assert_contains(haystack, key)
-        self.assertEqual(
-            value,
-            actual,
-            msg=f'Expected dict["{key}"] to be {pp(value)}, '
-            f"got {pp(actual)}. Dict is: {pp(haystack)}",
-        )
-
     def _mk_riddle(
         self, date: datetime.datetime | None = None, riddle_str: str | None = None
-    ) -> dict[str, datetime.datetime | str | list[str]]:
+    ) -> schemas.GameDataDict:
         if riddle_str is None:
             words = [self.unique_az(length=5) for _ in range(5)]
         else:
@@ -96,6 +49,7 @@ class TestRiddleLogic(TestCase):
             "picture": self.unique("https://pic.com/s/"),
             "words": words,
             "author": self.unique("Author"),
+            "dalle": 3,
         }
 
     def test_get_riddle_for_date(self) -> None:
@@ -117,7 +71,7 @@ class TestRiddleLogic(TestCase):
         self.riddles.insert_one(mongo_riddle)
         cached = self.testee.get_riddle_for_date(self.datetime)
         new_riddle = self._mk_riddle()
-        self.riddles.update_one({"_id": mongo_riddle["_id"]}, {"$set": new_riddle})
+        self.riddles.update_one({"date": mongo_riddle["date"]}, {"$set": new_riddle})
 
         # act
         riddle = self.testee.get_riddle_for_date(self.datetime)
@@ -199,3 +153,103 @@ class TestRiddleLogic(TestCase):
 
         # assert
         self.m_requests.post.assert_not_called()
+
+    def test_get_max_riddle_date(self) -> None:
+        # arrange
+        newest_riddle = self._mk_riddle(
+            date=self.testee.date + datetime.timedelta(days=2)
+        )
+        self.riddles.insert_one(newest_riddle)
+
+        # act
+        max_riddle_date = self.testee.get_max_riddle_date()
+
+        # assert
+        newest_dt = newest_riddle["date"]
+        self.assertEqual(newest_dt.date(), max_riddle_date)
+
+    def test_get_max_riddle_date__no_riddles(self) -> None:
+        # act & assert
+        with self.assertRaises(MMMError) as exc:
+            self.testee.get_max_riddle_date()
+        self.assertEqual(exc.exception.code, 464353)
+
+
+class TestParseRiddleLogic(MMMTestCase):
+    def setUp(self) -> None:
+        self.m_requests = self.patch("logic.requests")
+        self.image_id_prefix = self.unique("prefix")
+        self.image_id = f"{self.image_id_prefix}.{self.unique('suffix')}"
+        self.prompt = "a group of pregnant witches doing pilates"
+        self.some_uuid = self.unique("uuid")
+        self.image_id_in_url = urllib.parse.quote(self.image_id)
+        self.url = f"https://www.bing.com/images/create/prompt/{self.some_uuid}?id={self.image_id_in_url}"
+        self.testee = ParseRiddleLogic(url=self.url)
+
+    def _mk_bing_response(
+        self, image_id: str, prompt: str | None = None, sicid: str = "blah.blah"
+    ) -> dict[str, str]:
+        return {
+            "imageId": image_id,
+            "contentUrl": self.unique("https://pic.com/s/"),
+            "name": prompt if prompt is not None else self.prompt,
+            "sicid": sicid,
+        }
+
+    def _assert_fetched_image_data(self) -> None:
+        fetch_image_data_url = f"https://www.bing.com/images/create/detail/async/{self.some_uuid}?imageId={self.image_id_in_url}"
+        self.m_requests.get.assert_called_once_with(fetch_image_data_url)
+
+    def test_parse_riddle__bing(self) -> None:
+        # arrange
+        relevant_response = self._mk_bing_response(image_id=self.image_id)
+        expected_image_url = relevant_response["contentUrl"]
+
+        self.m_requests.get.return_value.json.return_value = {
+            "iusn": False,
+            "totalEstimatedMatches": 3,
+            "value": [
+                self._mk_bing_response(image_id=self.unique("irrelevant1")),
+                relevant_response,
+                self._mk_bing_response(image_id=self.unique("irrelevant2")),
+            ],
+        }
+
+        # act
+        parsed = self.testee.parse_riddle()
+
+        # assert
+        self._assert_fetched_image_data()
+        self.assertEqual(parsed.picture, expected_image_url)
+        self.assertEqual(
+            parsed.words,
+            ["a", "group", "of", "pregnant", "witches", "doing", "pilates"],
+        )
+
+    def test_parse_riddle__bing__detect_image_from_sicid(self) -> None:
+        # arrange
+        relevant_response = self._mk_bing_response(
+            image_id=self.unique("irrelevant-by-id"),
+            sicid=f"{self.image_id_prefix}.{self.unique('sicid')}",
+        )
+        expected_image_url = relevant_response["contentUrl"]
+        self.m_requests.get.return_value.json.return_value = {
+            "iusn": False,
+            "totalEstimatedMatches": 3,
+            "value": [
+                self._mk_bing_response(image_id=self.unique("irrelevant1")),
+                relevant_response,
+                self._mk_bing_response(image_id=self.unique("irrelevant2")),
+            ],
+        }
+
+        # act
+        parsed = self.testee.parse_riddle()
+
+        # assert
+        self._assert_fetched_image_data()
+        self.assertEqual(parsed.picture, expected_image_url)
+        self.assertEqual(
+            parsed.words,
+            ["a", "group", "of", "pregnant", "witches", "doing", "pilates"],
+        )
