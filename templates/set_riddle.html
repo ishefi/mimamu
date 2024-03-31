@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="static/styles.css?version={{css_version}}">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+	<script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
+	<script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-DHL70JGT4P"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-DHL70JGT4P');
+	</script>
+
+	<title>Set Riddle</title>
+</head>
+<body>
+
+<div id="post-riddle">
+
+<label for="url">Image Url:</label>
+<input type="text" id="url" name="url" required>
+<button type="submit" id="submit">Submit</button>
+</div>
+
+<div id="approve-riddle" style="visibility: hidden">
+	<br>
+	<label for="language">Choose a language:</label>
+	<select name="language" id="language">
+		<option value="en">English</option>
+		<option value="he">Hebrew</option>
+	</select>
+	<br>
+	<img id="riddle-image" src="" alt="Riddle Image" width="50%" height="auto">
+	<br>
+	<textarea id="prompt" rows="1" cols="50"></textarea>
+	<br>
+	<textarea id="redacted" rows="1" cols="50" readonly></textarea>
+	<br>
+	<label for="author">Author:</label>
+	<input type="text" id="author" name="Author" required>
+	<br>
+	<button type="submit" id="check">Check</button>
+    <br>
+	<button type="submit" id="approve">Approve</button>
+</div>
+
+
+
+</body>
+<footer>
+    <script>
+		const urlParams = new URLSearchParams(window.location.search);
+		const token = urlParams.get('mmm-token');
+        document.getElementById("submit").addEventListener("click", function() {
+            fetch("/admin/set-riddle/info?" + new URLSearchParams({"url": document.getElementById("url").value}), {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-MMM-Token": token,
+                },
+            }).then((response) => {
+                if (response.ok) {
+                	return response.json();
+                } else {
+					throw new Error("Failed to fetch riddle info");
+				}
+            }).then((riddle) => {
+				console.log(riddle);
+				document.getElementById("approve-riddle").style.visibility = "visible";
+				document.getElementById("riddle-image").src = riddle.picture;
+				document.getElementById("prompt").value = riddle.words.join(" ");
+            }).catch((error) => {
+                console.log(error);
+            });
+        });
+    </script>
+
+</footer>
+
+</html>

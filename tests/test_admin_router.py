@@ -43,3 +43,13 @@ class TestAdminRouter(MMMTestCase):
         self.m_ParseUrlLogic.assert_called_once_with(url=url)
         self.m_parse_url_logic.parse_riddle.assert_called_once_with()
         self.assertEqual(basic_riddle.model_dump(), ret.json())
+
+    def test_get_set_riddle_page(self) -> None:
+        # act
+        ret = self.client.get(
+            "/admin/set-riddle", headers={"x-mmm-token": self.m_config.SECRET_TOKEN}
+        )
+
+        # assert
+        self.assertEqual(200, ret.status_code)
+        self.assertIn("<title>Set Riddle</title>", ret.text)

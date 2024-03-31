@@ -109,6 +109,11 @@ async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
     logic.clear_cache()
 
 
+@admin_router.get("/set-riddle", include_in_schema=False)
+async def set_riddle(request: Request) -> HTMLResponse:
+    return render(name="set_riddle.html", request=request)
+
+
 @admin_router.get("/set-riddle/info")
 async def get_riddle_info(
     url: str = Query(..., description="URL of the riddle"),
