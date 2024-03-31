@@ -22,7 +22,7 @@ class RiddleLogic:
     _all_riddle_cache: dict[str, dict[datetime.date, schemas.GameData]] = defaultdict(
         dict
     )
-    PAGE_SIZE = 6
+    PAGE_SIZE = 9
 
     def __init__(
         self,
@@ -76,6 +76,29 @@ class RiddleLogic:
             )
         return self.riddle_cache[date].model_copy(deep=True)
 
+    def get_riddle_for_date_range(
+        self, start: datetime.datetime, end: datetime.datetime
+    ) -> list[schemas.GameData]:
+        date_filters = []
+        data_to_return = []
+        for date in range((end - start).days + 1):
+            if (
+                date_date := start + datetime.timedelta(days=date)
+            ) in self.riddle_cache:
+                data_to_return.append(
+                    self.riddle_cache[date_date].model_copy(deep=True)
+                )
+            else:
+                date_filters.append(date_date)
+        if date_filters:
+            for riddle in self.mongo_riddles.find(
+                {"date": {"$in": date_filters}}, {"_id": 0}
+            ):
+                self.riddle_cache[riddle["date"]] = schemas.GameData(**riddle)
+                data_to_return.append(schemas.GameData(**riddle))
+        data_to_return.sort(key=lambda x: x.date, reverse=True)  # type: ignore
+        return data_to_return
+
     def _check_max(self) -> None:
         max_riddle_date = self.get_max_riddle_date()
         time_left = max_riddle_date - datetime.datetime.utcnow().date()
@@ -118,15 +141,13 @@ class RiddleLogic:
         return schemas.GuessAnswer(correct_guesses=found_indices)
 
     def get_history(self, page: int) -> list[schemas.GameData]:
-        riddle_history = []
-        for day in range(self.PAGE_SIZE):
-            historia_date = self.date - datetime.timedelta(
-                days=1 + (page * self.PAGE_SIZE + day)
-            )
-            if historia_date < self.get_first_riddle_date():
-                continue
-            riddle_history.append(self.get_riddle_for_date(historia_date))
-        return riddle_history
+        first_historia_date = self.date - datetime.timedelta(
+            days=1 + page * self.PAGE_SIZE
+        )
+        last_historia_date = first_historia_date - datetime.timedelta(
+            days=self.PAGE_SIZE - 1
+        )
+        return self.get_riddle_for_date_range(last_historia_date, first_historia_date)
 
     def clear_cache(self) -> None:
         self._all_riddle_cache.clear()

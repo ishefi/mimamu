@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import datetime
-from typing import Annotated
 from typing import Any
 
 import pymongo
@@ -44,8 +43,12 @@ async def index(request: Request) -> HTMLResponse:
 
 
 @page_router.get("/history", response_class=HTMLResponse, include_in_schema=False)
-async def history(request: Request) -> HTMLResponse:
-    return render(name="history.html", request=request)
+async def history(
+    request: Request, future: bool = False, mmm_token: str | None = None
+) -> HTMLResponse:
+    if future:
+        verify_token(mmm_token=mmm_token)
+    return render(name="history.html", request=request, future=future)
 
 
 @page_router.get("/lang/{lang}", response_class=RedirectResponse)
@@ -106,8 +109,10 @@ async def get_puzzle_version(request: Request) -> dict[str, str]:
 
 @game_router.get("/history")
 async def get_history(
-    page: Annotated[int, Query(ge=0)], logic: RiddleLogic = Depends(get_logic)
+    page: int, logic: RiddleLogic = Depends(get_logic), mmm_token: str | None = None
 ) -> list[schemas.GameData]:
+    if page < 0:
+        verify_token(mmm_token=mmm_token)
     return logic.get_history(page)
 
 

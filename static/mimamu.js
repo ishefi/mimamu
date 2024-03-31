@@ -156,14 +156,24 @@ let MiMaMu = (function () {
     guessField.focus();
   }
 
+  const params = new URLSearchParams(window.location.search);
+  const future = params.get('future');
+  const token = params.get('mmm_token');
   let currentPage = 0;
+  if (future) {
+    currentPage = -1;
+  }
   async function getHistory() {
     await fetchHistory();
     addClickListenersToImages();
     currentPage++;
   }
   async function fetchHistory() {
-        const response = await fetch(`/game/history?page=${currentPage}`);
+        let url = `/game/history?page=${currentPage}`;
+        if (token) {
+          url += `&mmm_token=${token}`;
+        }
+        const response = await fetch(url);
         riddle_history = await response.json();
         const imageContainer = document.getElementById('image-container');
         riddle_history.forEach((historia) => {

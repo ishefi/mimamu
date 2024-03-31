@@ -29,4 +29,4 @@ class GameDataDict(TypedDict):
     words: list[str]
     date: datetime.datetime
     author: str
-    dalle: int | None
+    dalle: int
