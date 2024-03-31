@@ -94,7 +94,7 @@ class RiddleLogic:
         riddle_date: datetime.datetime = max_riddle["date"]
         return riddle_date.date()
 
-    def set_riddle(self, riddle: schemas.GameData, force: bool = False) -> None:
+    def set_riddle(self, riddle: schemas.GameData, force: bool) -> None:
         if not force:
             try:
                 existing_riddle = self.get_riddle_for_date(self.date)

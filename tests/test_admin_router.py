@@ -1,11 +1,11 @@
 import datetime
+from unittest.mock import ANY
 
 from fastapi.testclient import TestClient
 
 import schemas
 from app import app
 from mocks import MMMTestCase
-from routers import get_logic
 
 
 class TestAdminRouter(MMMTestCase):
@@ -13,10 +13,9 @@ class TestAdminRouter(MMMTestCase):
         self.client = TestClient(app)
         self.m_ParseUrlLogic = self.patch("routers.ParseRiddleLogic")
         self.m_parse_url_logic = self.m_ParseUrlLogic.return_value
-        self.m_riddle_logic = self.patch("routers.RiddleLogic").return_value
-        app.dependency_overrides[get_logic] = (
-            lambda: self.m_riddle_logic
-        )  # TODO: teardown?
+        self.m_RiddleLogic = self.patch("routers.RiddleLogic")
+        self.m_riddle_logic = self.m_RiddleLogic.return_value
+        self.m_config.mongo = "mongodb://mock"
         self.m_config.SECRET_TOKEN = "test_secret_token"
 
     def test_bad_token(self) -> None:
@@ -82,6 +81,7 @@ class TestAdminRouter(MMMTestCase):
         # act
         ret = self.client.post(
             "/admin/set-riddle/check",
+            params={"lang": "fr", "date": "1989-12-05"},
             headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
             json=riddle_to_check.model_dump(),
         )
@@ -95,6 +95,9 @@ class TestAdminRouter(MMMTestCase):
         self.assert_contains_key_value(checked, "dalle", 3)
         self.assert_contains_key_value(checked, "date", "1989-12-04")
 
+        self.m_RiddleLogic.assert_called_once_with(
+            ANY, lang="fr", date=datetime.date(1989, 12, 5)
+        )
         self.m_riddle_logic.redact.assert_called_once()
         self.m_riddle_logic.get_max_riddle_date.assert_called_once()
 
@@ -110,9 +113,14 @@ class TestAdminRouter(MMMTestCase):
         # act
         ret = self.client.post(
             "/admin/set-riddle",
+            params={"lang": "fr", "date": "1989-12-05"},
             headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
             json=riddle.model_dump(),
         )
 
         # assert
+        self.m_RiddleLogic.assert_called_once_with(
+            ANY, lang="fr", date=datetime.date(1989, 12, 5)
+        )
+        self.m_riddle_logic.set_riddle.assert_called_once_with(riddle, force=False)
         self.assertEqual(200, ret.status_code)

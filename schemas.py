@@ -14,7 +14,7 @@ class BasicGameData(BaseModel):
 class GameData(BasicGameData):
     date: datetime.date | None = None
     author: str
-    dalle: int = 2
+    dalle: int = 3
 
 
 class GuessAnswer(BaseModel):

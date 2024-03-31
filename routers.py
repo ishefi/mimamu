@@ -60,14 +60,27 @@ def get_logic(
     mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
         get_mongo
     ),
-    lang: str | None = Query(None),
 ) -> RiddleLogic:
     days_delta = datetime.timedelta(days=request.app.state.date_delta)
     date = datetime.datetime.utcnow().date() + days_delta
     return RiddleLogic(
         mongo_riddles=mongo,
         date=date,
-        lang=lang or request.cookies.get("lang", "en"),
+        lang=request.cookies.get("lang", "en"),
+    )
+
+
+def get_admin_logic(
+    mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
+        get_mongo
+    ),
+    lang: str = Query(...),
+    date: datetime.date = Query(...),
+) -> RiddleLogic:
+    return RiddleLogic(
+        mongo_riddles=mongo,
+        date=date,
+        lang=lang,
     )
 
 
@@ -125,7 +138,7 @@ async def get_riddle_info(
 
 @admin_router.post("/set-riddle/check")
 async def check_riddle(
-    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_logic)
+    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_admin_logic)
 ) -> schemas.GameData:
     logic.redact(riddle)
     riddle.date = logic.get_max_riddle_date() + datetime.timedelta(days=1)
@@ -134,9 +147,9 @@ async def check_riddle(
 
 @admin_router.post("/set-riddle")
 async def set_riddle(
-    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_logic)
+    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_admin_logic)
 ) -> None:
-    logic.set_riddle(riddle)
+    logic.set_riddle(riddle, force=False)  # TODO: allow forcing?
 
 
 routers = [page_router, game_router, admin_router]

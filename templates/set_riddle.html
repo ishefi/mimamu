@@ -38,9 +38,9 @@
 	<br>
 	<img id="riddle-image" src="" alt="Riddle Image" width="50%" height="auto">
 	<br>
-	<textarea id="prompt" rows="1" cols="50"></textarea>
+	<textarea id="prompt" rows="1" cols="100"></textarea>
 	<br>
-	<textarea id="redacted" rows="1" cols="50" readonly></textarea>
+	<textarea id="redacted" rows="1" cols="100" readonly></textarea>
 	<br>
 	<label for="date">Date:</label>
 	<input type="date" id="date" name="Date" readonly>
@@ -62,6 +62,18 @@
     <script>
 		const urlParams = new URLSearchParams(window.location.search);
 		const token = urlParams.get('mmm_token');
+		document.getElementById("date").valueAsDate = new Date();
+
+		document.getElementById("language").addEventListener("change", function() {
+		    let lang = document.getElementById("language").value;
+		    if (lang === "he") {
+		        document.getElementById("prompt").style.direction = "rtl";
+		        document.getElementById("redacted").style.direction = "rtl";
+		    } else {
+		        document.getElementById("prompt").style.direction = "ltr";
+		        document.getElementById("redacted").style.direction = "ltr";
+		    }
+		});
         document.getElementById("submit").addEventListener("click", function() {
             fetch("/admin/set-riddle/info?" + new URLSearchParams({"url": document.getElementById("url").value}), {
                 method: "GET",
@@ -85,7 +97,7 @@
             });
         });
 		document.getElementById("check").addEventListener("click", function() {
-			fetch("/admin/set-riddle/check?lang=" + document.getElementById("language").value, {
+			fetch("/admin/set-riddle/check?" + new URLSearchParams({"lang": document.getElementById("language").value, "date": document.getElementById("date").value}), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -95,7 +107,6 @@
 					"picture": document.getElementById("riddle-image").src,
 					"words": document.getElementById("prompt").value.split(" "),
 					"author": document.getElementById("author").value,
-					"dalle": 3,
 				}),
 			}).then((response) => {
 				if (response.ok) {
@@ -112,7 +123,7 @@
 			});
 		});
 		document.getElementById("approve").addEventListener("click", function() {
-			fetch("/admin/set-riddle?lang=" + document.getElementById("language").value , {
+			fetch("/admin/set-riddle?" + new URLSearchParams({"lang": document.getElementById("language").value, "date": document.getElementById("date").value}), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

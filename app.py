@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import hashlib
-import os
 from datetime import datetime
 
 from fastapi import FastAPI
@@ -13,7 +12,7 @@ from routers import routers
 def get_date_delta() -> int:
     today = datetime.utcnow().date()
     try:
-        date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d")
+        date = datetime.strptime(config.GAME_DATE, "%Y-%m-%d")
         return (date.date() - today).days
     except ValueError:
         return 0
