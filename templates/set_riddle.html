@@ -111,6 +111,39 @@
 				console.log(error);
 			});
 		});
+		document.getElementById("approve").addEventListener("click", function() {
+			fetch("/admin/set-riddle?lang=" + document.getElementById("language").value , {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-MMM-Token": token,
+				},
+				body: JSON.stringify({
+					"picture": document.getElementById("riddle-image").src,
+					"words": document.getElementById("prompt").value.split(" "),
+					"author": document.getElementById("author").value,
+					"date": document.getElementById("date").value,
+				}),
+			}).then((response) => {
+				if (response.ok) {
+					alert("Riddle set for " + document.getElementById("date").value + " in " + document.getElementById("language").value);
+					return response.json();
+				} else {
+					throw new Error("Failed to approve riddle");
+				}
+			}).then((response) => {
+				console.log(response);
+				document.getElementById("approve-riddle").style.visibility = "hidden";
+				document.getElementById("url").value = "";
+				document.getElementById("riddle-image").src = "";
+				document.getElementById("prompt").value = "";
+				document.getElementById("redacted").value = "";
+				document.getElementById("date").value = "";
+				document.getElementById("author").value = "";
+			}).catch((error) => {
+				console.log(error);
+			});
+		});
     </script>
 
 </footer>

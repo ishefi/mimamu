@@ -111,7 +111,7 @@ async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
 
 
 @admin_router.get("/set-riddle", include_in_schema=False)
-async def set_riddle(request: Request) -> HTMLResponse:
+async def set_riddle_page(request: Request) -> HTMLResponse:
     return render(name="set_riddle.html", request=request)
 
 
@@ -130,6 +130,13 @@ async def check_riddle(
     logic.redact(riddle)
     riddle.date = logic.get_max_riddle_date() + datetime.timedelta(days=1)
     return riddle
+
+
+@admin_router.post("/set-riddle")
+async def set_riddle(
+    riddle: schemas.GameData, logic: RiddleLogic = Depends(get_logic)
+) -> None:
+    logic.set_riddle(riddle)
 
 
 routers = [page_router, game_router, admin_router]

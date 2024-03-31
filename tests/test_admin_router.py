@@ -97,3 +97,22 @@ class TestAdminRouter(MMMTestCase):
 
         self.m_riddle_logic.redact.assert_called_once()
         self.m_riddle_logic.get_max_riddle_date.assert_called_once()
+
+    def test_set_riddle(self) -> None:
+        # arrange
+        riddle = schemas.GameData(
+            picture=self.unique("https://bing.com/image.jpg"),
+            words=["john", "is", "happy"],
+            author=self.unique("author"),
+            dalle=3,
+        )
+
+        # act
+        ret = self.client.post(
+            "/admin/set-riddle",
+            headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
+            json=riddle.model_dump(),
+        )
+
+        # assert
+        self.assertEqual(200, ret.status_code)
