@@ -16,6 +16,7 @@ from fastapi.templating import Jinja2Templates
 import schemas
 from auth import verify_token
 from common import config
+from logic import ParseRiddleLogic
 from logic import RiddleLogic
 from session import get_mongo
 
@@ -106,6 +107,14 @@ async def get_first_date(
 @admin_router.delete("/cache", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cache(logic: RiddleLogic = Depends(get_logic)) -> None:
     logic.clear_cache()
+
+
+@admin_router.get("/set-riddle/info")
+async def get_riddle_info(
+    url: str = Query(..., description="URL of the riddle"),
+) -> schemas.BasicGameData:
+    parse_logic = ParseRiddleLogic(url)
+    return parse_logic.parse_riddle()
 
 
 routers = [page_router, game_router, admin_router]

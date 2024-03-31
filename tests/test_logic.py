@@ -22,9 +22,9 @@ if TYPE_CHECKING:
 @freeze_time("1989-12-03")
 class TestRiddleLogic(MMMTestCase):
     def setUp(self) -> None:
-        self.riddles: pymongo.collection.Collection[
-            schemas.GameDataDict
-        ] = MongoClient().MiMaMu.riddles
+        self.riddles: pymongo.collection.Collection[schemas.GameDataDict] = (
+            MongoClient().MiMaMu.riddles
+        )
         self.datetime = datetime.datetime.utcnow()  # from freezegun
         self.date = self.datetime.date()
         self.m_requests = self.patch("logic.requests")
