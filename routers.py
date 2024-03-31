@@ -31,9 +31,9 @@ def render(name: str, request: Request, **kwargs: Any) -> HTMLResponse:
     kwargs["css_version"] = request.app.state.css_version
     kwargs["lang"] = request.cookies.get("lang", "en")
     kwargs["content"] = config.html_content
-    kwargs["request"] = request
     return templates.TemplateResponse(
-        name,
+        name=name,
+        request=request,
         context=kwargs,
     )
 
