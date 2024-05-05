@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import datetime
+import urllib.parse
 from typing import Any
 
 import pymongo
@@ -53,7 +54,14 @@ async def history(
 
 @page_router.get("/lang/{lang}", response_class=RedirectResponse)
 async def language_change(request: Request, lang: str) -> RedirectResponse:
-    response = RedirectResponse("/")
+    referer = urllib.parse.urlparse(request.headers.get("Referer"))
+    referer_path = referer.path or "/"
+    referer_params = referer.query or ""
+    if isinstance(referer_path, bytes):
+        referer_path = referer_path.decode()
+    if isinstance(referer_params, bytes):
+        referer_params = referer_params.decode()
+    response = RedirectResponse(f"{referer_path}?{referer_params}")
     response.set_cookie("lang", lang)
     return response
 
