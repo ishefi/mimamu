@@ -77,11 +77,12 @@ class TestAdminRouter(MMMTestCase):
             author=self.unique("author"),
             dalle=3,
         )
+        self.client.cookies["lang"] = "fr"
 
         # act
         ret = self.client.post(
             "/admin/set-riddle/check",
-            params={"lang": "fr", "date": "1989-12-05"},
+            params={"date": "1989-12-05"},
             headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
             json=riddle_to_check.model_dump(),
         )
@@ -109,11 +110,12 @@ class TestAdminRouter(MMMTestCase):
             author=self.unique("author"),
             dalle=3,
         )
+        self.client.cookies["lang"] = "fr"
 
         # act
         ret = self.client.post(
             "/admin/set-riddle",
-            params={"lang": "fr", "date": "1989-12-05"},
+            params={"date": "1989-12-05"},
             headers={"x-mmm-token": self.m_config.SECRET_TOKEN},
             json=riddle.model_dump(),
         )

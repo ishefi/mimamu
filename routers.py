@@ -82,16 +82,16 @@ def get_logic(
 
 
 def get_admin_logic(
+    request: Request,
     mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
         get_mongo
     ),
-    lang: str = Query(...),
     date: datetime.date = Query(...),
 ) -> RiddleLogic:
     return RiddleLogic(
         mongo_riddles=mongo,
         date=date,
-        lang=lang,
+        lang=request.cookies.get("lang", "en"),
     )
 
 

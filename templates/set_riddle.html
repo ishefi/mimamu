@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,6 +27,11 @@
 		<input type="text" id="url" name="url" required>
 		<button type="submit" id="submit">Submit</button>
 	</div>
+	<div class="row">
+	<p style="font-size: large;">
+		<a href="/lang/{{"en" if lang == "he" else "he"}}" style="text-decoration: none;">
+		{{"🇮🇱" if lang == "he" else "🇬🇧"}}
+		</a>
 </div>
 
 <div id="approve-riddle" style="visibility: hidden; display: grid; justify-content: center">
@@ -36,19 +41,10 @@
 		<img id="riddle-image" src="" alt="Riddle Image" width="60%" height="auto">
 	</div>
 	<div class="row">
-		<div class="column">
-			<label for="language">Choose a language:</label>
-			<select name="language" id="language">
-				<option value="en">English</option>
-				<option value="he">Hebrew</option>
-			</select>
-		</div>
+		<textarea id="prompt" rows="3" style="width: 90%" dir={{"rtl" if lang == "he" else "ltr"}}></textarea>
 	</div>
 	<div class="row">
-		<textarea id="prompt" rows="3" style="width: 90%"></textarea>
-	</div>
-	<div class="row">
-		<textarea id="redacted" rows="3" style="width: 90%" readonly></textarea>
+		<textarea id="redacted" rows="3" style="width: 90%" dir={{"rtl" if lang == "he" else "ltr"}} readonly></textarea>
 	</div>
 	<div class="row">
 		<button type="submit" id="check">Check</button>
@@ -75,16 +71,6 @@
 		const token = urlParams.get('mmm_token');
 		document.getElementById("date").valueAsDate = new Date();
 
-		document.getElementById("language").addEventListener("change", function() {
-		    let lang = document.getElementById("language").value;
-		    if (lang === "he") {
-		        document.getElementById("prompt").style.direction = "rtl";
-		        document.getElementById("redacted").style.direction = "rtl";
-		    } else {
-		        document.getElementById("prompt").style.direction = "ltr";
-		        document.getElementById("redacted").style.direction = "ltr";
-		    }
-		});
         document.getElementById("submit").addEventListener("click", function() {
             fetch("/admin/set-riddle/info?" + new URLSearchParams({"url": document.getElementById("url").value}), {
                 method: "GET",
@@ -108,7 +94,7 @@
             });
         });
 		document.getElementById("check").addEventListener("click", function() {
-			fetch("/admin/set-riddle/check?" + new URLSearchParams({"lang": document.getElementById("language").value, "date": document.getElementById("date").value}), {
+			fetch("/admin/set-riddle/check?" + new URLSearchParams({"date": document.getElementById("date").value}), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -134,7 +120,7 @@
 			});
 		});
 		document.getElementById("approve").addEventListener("click", function() {
-			fetch("/admin/set-riddle?" + new URLSearchParams({"lang": document.getElementById("language").value, "date": document.getElementById("date").value}), {
+			fetch("/admin/set-riddle?" + new URLSearchParams({"date": document.getElementById("date").value}), {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -148,7 +134,7 @@
 				}),
 			}).then((response) => {
 				if (response.ok) {
-					alert("Riddle set for " + document.getElementById("date").value + " in " + document.getElementById("language").value);
+					alert("Riddle set for " + document.getElementById("date").value + " in {{ lang }}");
 					return response.json();
 				} else {
 					throw new Error("Failed to approve riddle");
@@ -169,7 +155,7 @@
 			});
 		});
     </script>
-
+	<script type="text/javascript" src="/static/mimamu.js?version={{js_version}}"></script>
 </footer>
 
 </html>
