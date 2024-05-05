@@ -154,13 +154,15 @@
 					throw new Error("Failed to approve riddle");
 				}
 			}).then((response) => {
+				let dateElem = document.getElementById("date");
+				let tomorrow = new Date(dateElem.valueAsDate.getTime() + 86400000);
 				console.log(response);
 				document.getElementById("approve-riddle").style.visibility = "hidden";
 				document.getElementById("url").value = "";
 				document.getElementById("riddle-image").src = "";
 				document.getElementById("prompt").value = "";
 				document.getElementById("redacted").value = "";
-				document.getElementById("date").value = "";
+				dateElem.value = tomorrow.toISOString().split("T")[0];
 				document.getElementById("author").value = "";
 			}).catch((error) => {
 				console.log(error);
