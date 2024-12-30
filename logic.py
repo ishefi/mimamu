@@ -190,7 +190,13 @@ class ParseRiddleLogic:
     ) -> tuple[str, str]:
         query = urllib.parse.urlencode({"imageId": image_id})
         newrl = f"https://www.bing.com{parsed_path}?{query}"
-        images = requests.get(newrl).json()
+        headers = {
+            "user-agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36"
+            )
+        }
+        images = requests.get(newrl, headers=headers).json()
         for data in images["value"]:
             if data["imageId"] == image_id or data["sicid"].startswith(image_id_prefix):
                 return data["name"], data["contentUrl"]
