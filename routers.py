@@ -54,6 +54,7 @@ async def history(
 
 @page_router.get("/lang/{lang}", response_class=RedirectResponse)
 async def language_change(request: Request, lang: str) -> RedirectResponse:
+    lang = "en"
     referer = urllib.parse.urlparse(request.headers.get("Referer"))
     referer_path = referer.path or "/"
     referer_params = referer.query or ""
