@@ -141,12 +141,19 @@ class RiddleLogic:
         return schemas.GuessAnswer(correct_guesses=found_indices)
 
     def get_history(self, page: int) -> list[schemas.GameData]:
-        first_historia_date = self.date - datetime.timedelta(
-            days=1 + page * self.PAGE_SIZE
-        )
-        last_historia_date = first_historia_date - datetime.timedelta(
-            days=self.PAGE_SIZE - 1
-        )
+        if page < 0:
+            max_date = self.get_max_riddle_date()
+            first_historia_date = datetime.datetime(
+                max_date.year, max_date.month, max_date.day
+            )
+            last_historia_date = self.date
+        else:
+            first_historia_date = self.date - datetime.timedelta(
+                days=1 + page * self.PAGE_SIZE
+            )
+            last_historia_date = first_historia_date - datetime.timedelta(
+                days=self.PAGE_SIZE - 1
+            )
         return self.get_riddle_for_date_range(last_historia_date, first_historia_date)
 
     def clear_cache(self) -> None:
