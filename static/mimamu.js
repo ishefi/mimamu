@@ -71,7 +71,11 @@ let MiMaMu = (function () {
     const pic = document.getElementById("pic");
     const author = document.getElementById("promptBy")
     author.textContent = "prompt by " + daily.author;
-    pic.src = daily.picture;
+    if (daily.picture.length > 1000) {
+      pic.src = "data:image/png;base64," + daily.picture;
+    } else {
+      pic.src = daily.picture;
+    }
     const prompt = document.getElementById("prompt");
     prompt.replaceChildren([]);
     let won = true;
@@ -184,7 +188,11 @@ let MiMaMu = (function () {
           const imgElement = document.createElement('img');
           imgElement.className = 'column imageHistory';
           imgElement.style.borderRadius = "50%";
-          imgElement.src = historia.picture;
+          if (historia.picture.length > 1000) {
+            imgElement.src = "data:image/png;base64," + historia.picture;
+          } else {
+            imgElement.src = historia.picture;
+          }
           imgElement.setAttribute('data-prompt', historia.words.join(" "));
           imgWrapper.appendChild(imgElement);
           imgWrapper.appendChild(imgText);
@@ -256,7 +264,7 @@ let MiMaMu = (function () {
       dalleLink.setAttribute("href", "https://openai.com/dall-e-2/")
     }
     else {
-      dalleLink.setAttribute("href", "https://www.bing.com/images/create/")
+      dalleLink.setAttribute("href", "https://openai.com/index/dall-e-3/")
     }
 
       var x = setInterval(function() {

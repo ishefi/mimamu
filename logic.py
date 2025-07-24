@@ -7,6 +7,7 @@ import urllib.parse
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+import openai
 import requests
 
 import schemas
@@ -166,6 +167,54 @@ class RiddleLogic:
             raise MMMError(message="Error finding riddles", code=63456)
         first_date: datetime.datetime = first_riddle["date"]
         return first_date
+
+    def auto_generate_riddle(self, force: bool = False) -> None:
+        client = openai.OpenAI(api_key=config.openai_api_key)
+
+        # 1. Generate a creative/absurd image description (prompt)
+        # using OpenAI Chat Completion
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a creative AI that invents absurd, funny, or "
+                    "surreal image descriptions for a daily riddle game. Each "
+                    "description should be a single sentence, 10-15 words, vivid, "
+                    "and suitable for generating an image. Do not include anything in "
+                    "your answer, just the description.",
+                },
+                {
+                    "role": "user",
+                    "content": "Generate a new, unique, and absurd image description "
+                    "for today's riddle.",
+                },
+            ],
+            max_tokens=60,
+            temperature=1.2,
+        )
+        prompt = response.choices[0].message.content
+        assert isinstance(prompt, str)
+        # 2. Generate an image using DALL·E (OpenAI Image API)
+        image_response = client.images.generate(
+            prompt=prompt.strip(),
+            response_format="b64_json",
+            n=1,
+            model="dall-e-3",
+            size="1024x1024",
+        )
+        assert image_response.data is not None
+        base64_image = image_response.data[0].b64_json
+        assert isinstance(base64_image, str)
+        last_riddle_date = self.get_max_riddle_date()
+        riddle_data = schemas.GameData(
+            picture=base64_image,
+            words=prompt.split(),
+            date=last_riddle_date + datetime.timedelta(days=1),
+            author="Auto (OpenAI)",
+            dalle=3,
+        )
+        self.set_riddle(riddle_data, force=force)
 
 
 class ParseRiddleLogic:
