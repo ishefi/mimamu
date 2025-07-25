@@ -74,7 +74,7 @@ class RiddleLogic:
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
             self.riddle_cache[date] = schemas.GameData(
-                picture=riddle.get("picture") or "",
+                picture=riddle.get("picture"),
                 words=riddle["words"],
                 date=riddle["date"],
                 author=riddle["author"],

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 
 class BasicGameData(BaseModel):
-    picture: str
+    picture: str | None
     words: list[str]
 
 
