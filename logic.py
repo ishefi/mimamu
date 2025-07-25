@@ -44,8 +44,8 @@ class RiddleLogic:
     def riddle_cache(self) -> dict[datetime.date, schemas.GameData]:
         return self._all_riddle_cache[self.lang]
 
-    def get_redacted_riddle(self) -> schemas.GameData:
-        riddle = self.get_riddle_for_date(self.date)
+    def get_redacted_riddle(self, with_pic: bool = True) -> schemas.GameData:
+        riddle = self.get_riddle_for_date(self.date, with_pic=with_pic)
         self.redact(riddle)
         return riddle
 
@@ -61,15 +61,20 @@ class RiddleLogic:
             if self._should_redact(word):
                 riddle.words[i] = "█" * len(word)
 
-    def get_riddle_for_date(self, date: datetime.datetime) -> schemas.GameData:
+    def get_riddle_for_date(
+        self, date: datetime.datetime, with_pic: bool = True
+    ) -> schemas.GameData:
         if date not in self.riddle_cache:
             if date == self.date:
                 self._check_max()
-            riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
+            projection = {"_id": 0}
+            if not with_pic:
+                projection["picture"] = 0
+            riddle = self.mongo_riddles.find_one({"date": date}, projection)
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
             self.riddle_cache[date] = schemas.GameData(
-                picture=riddle["picture"],
+                picture=riddle.get("picture") or "",
                 words=riddle["words"],
                 date=riddle["date"],
                 author=riddle["author"],

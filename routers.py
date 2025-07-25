@@ -1,16 +1,20 @@
 #!/usr/bin/env python
+import base64
 import datetime
 import urllib.parse
+from io import BytesIO
 from typing import Any
 
 import pymongo
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 from fastapi import Query
 from fastapi import status
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
+from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 
 import schemas
@@ -98,7 +102,32 @@ def get_admin_logic(
 
 @game_router.get("/data")
 async def get_game(logic: RiddleLogic = Depends(get_logic)) -> schemas.GameData:
-    return logic.get_redacted_riddle()
+    data = logic.get_redacted_riddle(with_pic=False)
+    data.picture = f"/game/picture/{data.date}.png"
+    return data
+
+
+@game_router.get("/picture/{riddle_date}.png")
+async def get_picture(
+    request: Request,
+    riddle_date: datetime.date,
+    mongo: dict[str, pymongo.collection.Collection[schemas.GameDataDict]] = Depends(
+        get_mongo
+    ),
+) -> StreamingResponse:
+    if riddle_date > datetime.datetime.utcnow().date() + datetime.timedelta(
+        days=request.app.state.date_delta
+    ):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    logic = RiddleLogic(
+        mongo_riddles=mongo,
+        date=riddle_date,
+        lang=request.cookies.get("lang", "en"),
+    )
+    riddle = logic.get_redacted_riddle(with_pic=True)
+    image_bytes = base64.b64decode(riddle.picture)
+    image_stream = BytesIO(image_bytes)
+    return StreamingResponse(image_stream, media_type="image/png")
 
 
 @game_router.get("/guess")
