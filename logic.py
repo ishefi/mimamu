@@ -73,13 +73,17 @@ class RiddleLogic:
             riddle = self.mongo_riddles.find_one({"date": date}, projection)
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
-            self.riddle_cache[date] = schemas.GameData(
+            game_data = schemas.GameData(
                 picture=riddle.get("picture"),
                 words=riddle["words"],
                 date=riddle["date"],
                 author=riddle["author"],
                 dalle=riddle["dalle"] or 2,
             )
+            if with_pic:
+                self.riddle_cache[date] = game_data
+            else:
+                return game_data
         return self.riddle_cache[date].model_copy(deep=True)
 
     def get_riddle_for_date_range(
