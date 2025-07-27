@@ -102,7 +102,7 @@ def get_admin_logic(
 
 @game_router.get("/data")
 async def get_game(logic: RiddleLogic = Depends(get_logic)) -> schemas.GameData:
-    data = logic.get_redacted_riddle(with_pic=False)
+    data = logic.get_redacted_riddle()
     data.picture = f"/game/picture/{data.date}.png"
     return data
 
@@ -124,7 +124,7 @@ async def get_picture(
         date=riddle_date,
         lang=request.cookies.get("lang", "en"),
     )
-    riddle = logic.get_redacted_riddle(with_pic=True)
+    riddle = logic.get_redacted_riddle()
     image_bytes = base64.b64decode(riddle.picture)
     image_stream = BytesIO(image_bytes)
     return StreamingResponse(image_stream, media_type="image/png")
@@ -177,6 +177,25 @@ async def get_riddle_info(
 ) -> schemas.BasicGameData:
     parse_logic = ParseRiddleLogic(url)
     return parse_logic.parse_riddle()
+
+
+@admin_router.get("/auto-riddle")
+async def add_riddle_date(request: Request) -> HTMLResponse:
+    return render("auto_riddle.html", request=request)
+
+
+@admin_router.post("/auto-riddle")
+async def auto_generate_riddle(
+    logic: RiddleLogic = Depends(get_logic),
+) -> schemas.GameData:
+    max_date = logic.get_max_riddle_date()
+    new_logic = RiddleLogic(
+        mongo_riddles=logic.all_mongo_riddles,
+        date=max_date + datetime.timedelta(days=1),
+        lang=logic.lang,
+    )
+    riddle = new_logic.auto_generate_riddle()
+    return riddle
 
 
 @admin_router.post("/set-riddle/check")

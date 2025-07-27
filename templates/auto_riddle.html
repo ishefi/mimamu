@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/styles.css?version={{css_version}}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
+  <script src="https://cdn.ishefi.com/twemoji.min.js" crossorigin="anonymous"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DHL70JGT4P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-DHL70JGT4P');
+  </script>
+
+  <title>Set Riddle</title>
+
+  <style>
+    #loading {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div align="center">
+  <button id="auto-generate" style="margin: 100px">Auto Generate</button>
+</div>
+
+<div id="loading">Loading...</div>
+
+<div id="result" style="display:none;">
+  <div align="center" style="margin: 5%">
+    <img id="riddle-image" src="" alt="Riddle Image" style="max-width: 300px;"><br>
+    <strong>Words:</strong> <span id="riddle-words"></span><br>
+    <strong>Date:</strong> <span id="riddle-date"></span><br>
+    <strong>Author:</strong> <span id="riddle-author"></span><br>
+    <strong>DALL·E version:</strong> <span id="riddle-dalle"></span><br>
+  </div>
+</div>
+
+<script>
+  function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+  }
+
+  document.getElementById('auto-generate').addEventListener('click', async () => {
+    const token = getQueryParam('mmm_token');
+    const loading = document.getElementById('loading');
+    const resultDiv = document.getElementById('result');
+
+    // Show loading wheel
+    loading.style.display = 'block';
+    resultDiv.style.display = 'none';
+
+    try {
+      const response = await fetch('/admin/auto-riddle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-MMM-Token': token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+
+      const data = await response.json();
+
+      // Update DOM with returned data
+      document.getElementById('riddle-image').src = "data:image/png;base64, " + data.picture;
+      document.getElementById('riddle-words').textContent = data.words.join(' ');
+      document.getElementById('riddle-date').textContent = data.date;
+      document.getElementById('riddle-author').textContent = data.author;
+      document.getElementById('riddle-dalle').textContent = data.dalle;
+
+      resultDiv.style.display = 'block';
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      loading.style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>

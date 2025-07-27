@@ -14,6 +14,7 @@ import schemas
 import stopwords
 from common import config
 from common.errors import MMMError
+from schemas import GameData
 
 if TYPE_CHECKING:
     import pymongo.collection
@@ -44,8 +45,8 @@ class RiddleLogic:
     def riddle_cache(self) -> dict[datetime.date, schemas.GameData]:
         return self._all_riddle_cache[self.lang]
 
-    def get_redacted_riddle(self, with_pic: bool = True) -> schemas.GameData:
-        riddle = self.get_riddle_for_date(self.date, with_pic=with_pic)
+    def get_redacted_riddle(self) -> schemas.GameData:
+        riddle = self.get_riddle_for_date(self.date)
         self.redact(riddle)
         return riddle
 
@@ -61,29 +62,20 @@ class RiddleLogic:
             if self._should_redact(word):
                 riddle.words[i] = "█" * len(word)
 
-    def get_riddle_for_date(
-        self, date: datetime.datetime, with_pic: bool = True
-    ) -> schemas.GameData:
+    def get_riddle_for_date(self, date: datetime.datetime) -> schemas.GameData:
         if date not in self.riddle_cache:
             if date == self.date:
                 self._check_max()
-            projection = {"_id": 0}
-            if not with_pic:
-                projection["picture"] = 0
-            riddle = self.mongo_riddles.find_one({"date": date}, projection)
+            riddle = self.mongo_riddles.find_one({"date": date}, {"_id": 0})
             if riddle is None:
                 raise MMMError(45383, f"No riddle found for date {date.date()}")
-            game_data = schemas.GameData(
-                picture=riddle.get("picture"),
+            self.riddle_cache[date] = schemas.GameData(
+                picture=riddle["picture"],
                 words=riddle["words"],
                 date=riddle["date"],
                 author=riddle["author"],
                 dalle=riddle["dalle"] or 2,
             )
-            if with_pic:
-                self.riddle_cache[date] = game_data
-            else:
-                return game_data
         return self.riddle_cache[date].model_copy(deep=True)
 
     def get_riddle_for_date_range(
@@ -177,7 +169,7 @@ class RiddleLogic:
         first_date: datetime.datetime = first_riddle["date"]
         return first_date
 
-    def auto_generate_riddle(self, force: bool = False) -> None:
+    def auto_generate_riddle(self, force: bool = False) -> GameData:
         client = openai.OpenAI(api_key=config.openai_api_key)
 
         # 1. Generate a creative/absurd image description (prompt)
@@ -224,6 +216,7 @@ class RiddleLogic:
             dalle=3,
         )
         self.set_riddle(riddle_data, force=force)
+        return riddle_data
 
 
 class ParseRiddleLogic:
