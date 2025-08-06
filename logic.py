@@ -176,8 +176,12 @@ class RiddleLogic:
                     "content": "You are a creative AI that invents absurd, funny, or "
                     "surreal image descriptions for a daily riddle game. Each "
                     "description should be a single sentence, 10-15 words, vivid, "
-                    "and suitable for generating an image. Do not include anything in "
-                    "your answer, just the description.",
+                    "and suitable for generating an image. Do not use adjectives that "
+                    "describe abstract concepts, internal states, or qualities that "
+                    "cannot be visually represented."
+                    "Descriptions should not include unicycles, raccoons, "
+                    "dancing and juggling. "
+                    "Do not include anything in your answer but the description.",
                 },
                 {
                     "role": "user",
