@@ -163,7 +163,9 @@ class RiddleLogic:
         first_date: datetime.datetime = first_riddle["date"]
         return first_date
 
-    def auto_generate_riddle(self, force: bool = False) -> GameData:
+    def auto_generate_riddle(
+        self, yesteriddle: str = "", force: bool = False
+    ) -> GameData:
         client = openai.OpenAI(api_key=config.openai_api_key)
 
         # 1. Generate a creative/absurd image description (prompt)
@@ -178,15 +180,18 @@ class RiddleLogic:
                     "description should be a single sentence, 10-15 words, vivid, "
                     "and suitable for generating an image. Do not use adjectives that "
                     "describe abstract concepts, internal states, or qualities that "
-                    "cannot be visually represented."
+                    "cannot be visually represented such as 'pondering existential "
+                    "questions'."
                     "Descriptions should not include unicycles, raccoons, "
+                    "spaghetti, octapuses, top hats,"
                     "dancing and juggling. "
                     "Do not include anything in your answer but the description.",
                 },
                 {
                     "role": "user",
                     "content": "Generate a new, unique, and absurd image description "
-                    "for today's riddle.",
+                    "for today's riddle. For reference, this is yesterday's riddle. "
+                    " Do not repeat its ideas: '{}'".format(yesteriddle),
                 },
             ],
             max_tokens=60,
