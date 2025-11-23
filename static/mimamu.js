@@ -17,6 +17,7 @@ let MiMaMu = (function () {
       return cookie[cookieName];
     }
     const lang = getCookie("lang") || "en";
+    const bannerLang = navigator.language.startsWith('he') ? 'he' : 'en';
 
     function clearCache() {
       localStorage.removeItem(getCacheKey("mmm_allGuesses"));
@@ -245,6 +246,7 @@ let MiMaMu = (function () {
     }
 
   async function initGame() {
+    handleRetirementBanner();
     const rawInitialDate = (await (await fetch("/game/first-date")).json()).first_date;
     initialDay = (new Date(rawInitialDate + "Z").getTime() / 86400000);
     puzzleNumber = today + 1 - initialDay;
@@ -321,11 +323,38 @@ https://mimamu.ishefi.com/lang/en`
     }
 }
 
+function handleRetirementBanner() {
+    const retirementBanner = document.getElementById('retirement-banner');
+    const retirementModal = document.getElementById(`retirement-modal-${bannerLang}`);
+    const closeRetirementModal = document.getElementById('close-retirement-modal');
+
+    // The banner should always be visible.
+    retirementBanner.style.display = 'block';
+
+    retirementBanner.addEventListener('click', (event) => {
+        event.preventDefault();
+        retirementModal.style.display = 'block';
+    });
+
+    closeRetirementModal.addEventListener('click', () => {
+        retirementModal.style.display = 'none';
+        // Do not set localStorage item, as the banner should always reappear.
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === retirementModal) {
+            retirementModal.style.display = 'none';
+            // Do not set localStorage item, as the banner should always reappear.
+        }
+    });
+}
+
 
   return {
     share: share,
     initGame: initGame,
-    getHistory: getHistory
+    getHistory: getHistory,
+    handleRetirementBanner: handleRetirementBanner
   };
 })();
 

@@ -788,3 +788,85 @@ img.emoji {
    width: 50%;
    border-radius: 2%;
 }
+
+#retirement-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+    z-index: 1000;
+    cursor: pointer;
+    animation: bannerShake 1.5s ease-in-out infinite, bannerPulse 2s ease-in-out infinite;
+}
+
+#retirement-banner p {
+    margin: 0;
+    display: block;
+}
+
+#retirement-modal-he,
+#retirement-modal-en {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+#retirement-modal-he .modal-content,
+#retirement-modal-en .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    color: #000;
+    text-align: left;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@media only screen and (max-width: 640px) {
+    #retirement-modal-he .modal-content,
+    #retirement-modal-en .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 15px;
+    }
+}
+
+@keyframes bannerShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-0.5px); }
+    75% { transform: translateX(0.5px); }
+}
+
+@keyframes bannerPulse {
+    0%, 100% { background-color: #333; }
+    50% { background-color: #444; }
+}
+
+
