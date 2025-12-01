@@ -44,6 +44,9 @@ def render(name: str, request: Request, **kwargs: Any) -> HTMLResponse:
 
 @page_router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request) -> HTMLResponse:
+    # Per Itamar's request, MiMaMu is retired on December 3rd.
+    if datetime.datetime.utcnow() >= datetime.datetime(2025, 12, 3, 0, 0, 0):
+        return render(name="retired.html", request=request)
     return render(name="index.html", request=request)
 
 

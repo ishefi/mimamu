@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="static/styles.css?version={{css_version}}">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+	<script src="https://cdn.ishefi.com/twemoji.min.js" crossorigin="anonymous"></script>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-DHL70JGT4P"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-DHL70JGT4P');
+	</script>
+
+	<title>{{content["header"][lang]}}</title>
+</head>
+<body id="game" dir="ltr">
+	<div style="padding: 50px;" align="center" class="article-container">
+		<div id="retirement-content-he" dir="rtl" style="text-align: right; display: none;">
+			<p>MiMaMu יצא להפסקה ארוכה במיוחד 🫠</p>
+			<p>אחרי שלוש שנים ויותר מדי כוסות קפה, הבנתי שחידה חדשה כל יום היא משימה שדורשת קצת יותר אנרגיה ממה שיש לי לתת.
+			ניסיתי להעביר את העסק ל־AI כדי שיכין את החידות במקומי… אבל אתם יודעים איך זה נגמר 😅</p>
+			<p>שמחתי ממש לראות אתכם נהנים, מנחשים, מתווכחים ומשתפים את החידות. זה היה כיף גדול - באמת.
+			אבל הגיע הזמן לתת לפרויקט הזה ללכת לישון.</p>
+			<p>אפשר להמשיך לעקוב אחרי ב<a href="https://x.com/shefi89">טוויטר</a> וב<a href="https://www.ishefi.com">אתר האישי שלי</a>, ו...תמיד יש את <a href="https://semantle.ishefi.com">סמנטעל</a> 😉</p>
+			<p>תודה על הכול ❤️</p>
+		</div>
+		<div id="retirement-content-en" style="text-align: left;">
+				<p>MiMaMu has gone on a very long break 🫠</p>
+
+				<p>After three years and too many cups of coffee, I realized that a new daily puzzle requires a bit more energy than I have to give.
+				I tried to hand the business over to AI to create the puzzles for me... but you know how that ended 😅</p>
+
+				<p>I was truly happy to see you all enjoying, guessing, debating, and sharing the puzzles. It was a lot of fun - truly.
+				But it's time to let this project go to sleep.</p>
+
+				<p>You can continue to follow me on <a href="https://x.com/shefi89">Twitter</a> and my <a href="https://www.ishefi.com">personal website</a>, and... there's always <a href="https://semantle.ishefi.com">Semantle</a> 😉</p>
+
+				<p>Thank you for everything ❤️</p>
+		</div>
+	</div>
+
+	<script>
+		const lang = navigator.language.startsWith('he') ? 'he' : 'en';
+
+		if (lang === 'he') {
+			document.getElementById('retirement-content-en').style.display = 'none';
+			document.getElementById('retirement-content-he').style.display = 'block';
+			document.body.dir = 'rtl';
+		}
+		twemoji.parse(document.body);
+	</script>
+</body>
+
+
+
+</html>
